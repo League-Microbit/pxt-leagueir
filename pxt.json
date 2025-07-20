@@ -20,7 +20,7 @@
         "test.ts"
     ],
     "public": true,
-     "targetVersions": {
+    "targetVersions": {
         "target": "8.0.10",
         "targetId": "microbit"
     },

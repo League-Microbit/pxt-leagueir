@@ -22,24 +22,33 @@ using namespace pxt;
 
 namespace leaguepulse {
 
+    int counter = 0;
+
+
     //%
     void pulse(int pin, int16_t delay, int32_t count) {
+
         MicroBitPin *p = getPin(pin);
         if (!p) return;
         
+
         for (int32_t i = 0; i < count; i++) {
             // Set pin high
             p->setDigitalValue(1);
             // Wait for delay microseconds
-            //sleep_us(delay);
+            sleep_us(delay);
             
             // Set pin low
             p->setDigitalValue(0);
             // Wait for delay microseconds
-            //sleep_us(delay);
+            sleep_us(delay);
         }
     }
 
-
+    //%
+    int incCount() {
+        counter++;
+        return counter;
+    }
 
 }

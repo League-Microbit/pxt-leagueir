@@ -19,7 +19,7 @@ namespace leaguepulse {
     //% delay.min=1 delay.max=65535 delay.defl=1000
     //% count.min=1 count.max=1000 count.defl=10
     //% group="Pulse Generation"
-    export function generatePulsesCpp(pin: DigitalPin, count: number, delay: number): void {
+    export function generatePulsesCpp(pin: DigitalPin, delay: number, count: number): void {
         pulse(pin as number, delay, count)
     }
 
@@ -37,13 +37,24 @@ namespace leaguepulse {
     //% delay.min=1 delay.max=65535 delay.defl=1000
     //% count.min=1 count.max=1000 count.defl=10
     //% group="Pulse Generation"
-    export function generatePulsesTs(pin: DigitalPin, count: number, delay: number): void {
+    export function generatePulsesTs(pin: DigitalPin, delay: number, count: number): void {
         for (let i = 0; i < count; i++) {
             pins.digitalWritePin(pin, 1)
             control.waitMicros(delay)
             pins.digitalWritePin(pin, 0)
             control.waitMicros(delay)
         }
+    }
+
+    /**
+     * Increment the counter and return the new value
+     */
+    //% blockId="leaguepulse_inc_count" 
+    //% block="increment count"
+    //% weight=80
+    //% group="Counter"
+    export function incCount(): number {
+        return incCountCpp()
     }
 
     /**
@@ -55,6 +66,14 @@ namespace leaguepulse {
     //% shim=leaguepulse::pulse
     function pulse(pin: number, delay: number, count: number): void {
 
+    }
+
+    /**
+     * Function used for simulator, actual implementation is in pulse.cpp
+     */
+    //% shim=leaguepulse::incCount
+    function incCountCpp(): number {
+        return 0
     }
 
 
