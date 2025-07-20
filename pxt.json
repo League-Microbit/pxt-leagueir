@@ -4,7 +4,9 @@
     "description": "LeaguePulse Light Sensor",
     "license": "MIT",
     "dependencies": {
-        "core": "*"
+        "core": "*",
+        "radio": "*",
+        "microphone": "*"
     },
     "files": [
         "README.md",
@@ -17,5 +19,13 @@
     "testFiles": [
         "test.ts"
     ],
-    "public": true
+    "public": true,
+     "targetVersions": {
+        "target": "8.0.10",
+        "targetId": "microbit"
+    },
+    "supportedTargets": [
+        "microbit"
+    ],
+    "preferredEditor": "tsprj"
 }
