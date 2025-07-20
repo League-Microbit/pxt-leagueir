@@ -1,0 +1,21 @@
+{
+    "name": "leaguepulse",
+    "version": "0.0.1",
+    "description": "LeaguePulse Light Sensor",
+    "license": "MIT",
+    "dependencies": {
+        "core": "*"
+    },
+    "files": [
+        "README.md",
+        "pulse.ts",
+        "pulse.cpp",
+        "shims.d.ts",
+        "enums.d.ts",
+        "test.ts"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "public": true
+}
