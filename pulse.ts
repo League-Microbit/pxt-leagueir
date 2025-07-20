@@ -58,6 +58,24 @@ namespace leaguepulse {
     }
 
     /**
+     * Send a PWM command on a digital pin
+     * @param pin the digital pin to send command on
+     * @param command the 32-bit command to send
+     * @param periodMs the period in milliseconds for PWM timing, 26 == 38kHz
+     */
+    //% blockId="leaguepulse_send_command" 
+    //% block="send command %command on pin %pin with %periodMs ms period"
+    //% weight=70
+    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
+    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
+    //% command.min=0 command.max=4294967295 command.defl=0xFF00FF00
+    //% periodUs.min=1 periodUs.max=100 periodUs.defl=10
+    //% group="PWM Commands"
+    export function sendCommand(pin: DigitalPin, command: number, periodUs: number = 26): void {
+        sendCommandCpp(pin as number, command, periodUs)
+    }
+
+    /**
      * Function used for simulator, actual implementation is in pulse.cpp
      * @param pin the digital pin number
      * @param delay delay in microseconds for each high and low state (int16_t)
@@ -74,6 +92,17 @@ namespace leaguepulse {
     //% shim=leaguepulse::incCount
     function incCountCpp(): number {
         return 0
+    }
+
+    /**
+     * Function used for simulator, actual implementation is in pulse.cpp
+     * @param pin the digital pin number
+     * @param command the 32-bit command to send
+     * @param periodUs the period in microseconds
+     */
+    //% shim=leaguepulse::sendCommand
+    function sendCommandCpp(pin: number, command: number, periodUs: number): void {
+        // Simulator implementation would go here
     }
 
 
