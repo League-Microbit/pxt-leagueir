@@ -3,10 +3,10 @@
  * This program demonstrates the pulse generation functionality
  */
 
-let n: number = 0;
+let n: number = Math.floor(Math.random() * 10)
 basic.showNumber(n)
 
-// tests go here; this will not be compiled when this package is used as an extension.
+
 while(true) { 
     
     //leaguepulse.generatePulsesTs(DigitalPin.P0, 1, 10000)

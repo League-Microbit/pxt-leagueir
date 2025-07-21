@@ -24,9 +24,6 @@ namespace leaguepulse {
 
     int counter = 0;
 
-
-
-
     //%
     void pulse(int pin, int16_t delay, int32_t count) {
 
@@ -53,38 +50,7 @@ namespace leaguepulse {
         return counter;
     }
 
-    void sendPwmBit(int pin, int16_t highTime, int16_t lowTime) {
 
-        MicroBitPin *p = getPin(pin);
-        if (!p) return;
-
-        p->setDigitalValue(1);
-        sleep_us(highTime);
-        p->setDigitalValue(0);
-        sleep_us(lowTime);
-    }
-
-    /*
-    * Function to send a 32 bit word using PWM. This is the raw
-    * bits; the header and tail are added by the caller. 
-    */
-    void sendPwmWord(int pin, uint32_t word, int16_t highTime_1, int16_t highTime_0, 
-                     int16_t lowTime) {
-
-        // Send a 32 bit word, MSB first
-        for (int i = 31; i >= 0; i--) {
-            if (word & (1 << i)) {
-                // Send a 1
-                sendPwmBit(pin, highTime_1, lowTime);
-            }
-            else {
-                // Send a 0
-                sendPwmBit(pin, highTime_0, lowTime);
-            }
-        }
-
-    
-    }
 
     /*
     * Send an IR bit using PWM carrier frequency (38kHz)
@@ -96,7 +62,7 @@ namespace leaguepulse {
 
         if (!p) return;
 
-        if (true){
+        if (false){
             // No carrier, just use digital pin
             p->setDigitalValue(1);
             sleep_us(highTime);
@@ -127,12 +93,9 @@ namespace leaguepulse {
     * */
 
     //%
-    void sendCommand(int pin, uint32_t command, int16_t carrierFreqKHz) {
+    void sendCommand(int pin, uint32_t command) {
 
         // NEC protocol timing (all in microseconds)
-
-        const int16_t HIGH = 1;
-        const int16_t LOW = 0;
 
         const int16_t AGC_BURST = 9000 + 300;     // 9ms AGC burst +300 to fix timing error
         const int16_t AGC_SPACE = 4500 + 100;     // 4.5ms space +300 to fix timing error
@@ -144,19 +107,23 @@ namespace leaguepulse {
         const int16_t ONE_SPACE = ONE_BIT-BIT_MARK;     // 1.69ms space for '1'
         const int16_t STOP_BIT = 560;       // Final 560us mark
 
-        MicroBitPin *p = getPin(pin);
+        
         MicroBitPin *dp = getPin(MICROBIT_ID_IO_P1); // Debug pin
+        dp->setDigitalValue(1); // Debug pin high
 
-        dp->setDigitalValue(HIGH); // Debug pin high
+        MicroBitPin *p = getPin(pin);
+
         if (!p){
             sleep_us(2000);
-            dp->setDigitalValue(LOW); // Debug pin low
+            dp->setDigitalValue(0); // Debug pin low
             return;
         }
 
         // Send AGC header burst
      
         sendIrBit(p, AGC_BURST, AGC_SPACE);
+
+
 
         // Send 32 data bits (MSB first)
         for (int i = 31; i >= 0; i--) {
@@ -167,94 +134,18 @@ namespace leaguepulse {
             }
         }
 
+        dp->setDigitalValue(0); // Debug pin low
+        //return;
+
         // Send final stop bit
-        sendIrBit(p, STOP_BIT, 0);  // Stop bit with no space after
-        
-        dp->setDigitalValue(LOW); // Debug pin low
-        // Ensure line is low for message gap
-        sleep_us(40000); // 40ms minimum gap
+        sendIrBit(p, STOP_BIT, 0);
+
+        // Yield to other fibers (cooperative multitasking)
+        // Message gap of at least 40ms before next command
+        fiber_sleep(40);
+
     }
 
-    /*
-    * Wait for a pin to reach a specific state, then measure the pulse width
-    * @param pin the pin to monitor
-    * @param targetState the state to wait for (0 or 1)
-    * @param maxWidth maximum width to measure in microseconds
-    * @param timeoutUs timeout in microseconds for waiting for the state change
-    * @return the measured pulse width in microseconds, or -1 if timeout
-    */
-    int16_t waitAndMeasurePulse(MicroBitPin *p, int targetState, int16_t maxWidth, int timeoutUs = 250000) {
-        if (!p) return -1;
-        
-        // Wait for pin to reach target state
-        int timeout = timeoutUs;
-        while (p->getDigitalValue() != targetState && timeout > 0) {
-            sleep_us(10);
-            timeout -= 10;
-        }
-        if (timeout <= 0) return -1; // Timeout waiting for state change
-        
-        // Measure the width while pin stays in target state
-        int16_t pulseWidth = 0;
-        while (p->getDigitalValue() == targetState && pulseWidth < maxWidth) {
-            sleep_us(10);
-            pulseWidth += 10;
-        }
-        
-        return pulseWidth;
-    }
-
-    /*
-    * Recieve a command. The command will look for a 9ms leading pulse burst (high), 
-    * then a 4.5ms space (low), then 32 bits of PWM data, MSB first. It will timeout
-    * and return 0 if no command is recieved within 250ms
-    */
-    uint32_t recieveCommand(int pin, int16_t periodUs) {
-        
-        MicroBitPin *p = getPin(pin);
-        if (!p) return 0;
-
-        int16_t highTime_1 = periodUs * 2 / 3; // 66% duty cycle for a 1
-        int16_t highTime_0 = periodUs / 3;     // 33% duty cycle for a 0
-        int16_t lowTime = periodUs - highTime_1; // Remainder of the period
-
-        // Wait for the header
-        // Look for a high pulse of ~9ms
-        int16_t pulseWidth = 0;
-        int16_t spaceWidth = 0;
-        uint32_t command = 0;
-
-        // Wait for and measure the header high pulse (~9ms)
-        pulseWidth = waitAndMeasurePulse(p, 1, 12000);
-        if (pulseWidth < 0 || pulseWidth < 8000 || pulseWidth > 10000){
-            return 0; // Invalid or timeout
-        }
-
-        // Wait for and measure the header low space (~4.5ms)
-        spaceWidth = waitAndMeasurePulse(p, 0, 6000, 10000); // Shorter timeout for space
-        if (spaceWidth < 0 || spaceWidth < 4000 || spaceWidth > 5000){
-            return 0; // Invalid or timeout
-        }
-
-        // Now read in the 32 bits of data
-        for (int i = 31; i >= 0; i--) {
-            // Wait for and measure the width of the high pulse
-            pulseWidth = waitAndMeasurePulse(p, 1, periodUs * 2, 5000); // Wait up to 5ms for next bit
-            if (pulseWidth < 0) return 0; // Timeout waiting for bit
-            
-            // Determine if this is a 1 or a 0
-            if (pulseWidth > ((highTime_1 + highTime_0) / 2)) {
-            // This is a 1
-            command |= (1 << i);
-            }
-            
-            // Wait for the low space between bits
-            spaceWidth = waitAndMeasurePulse(p, 0, periodUs, 5000);
-            if (spaceWidth < 0) return 0; // Timeout waiting for space
-        }
-
-        return command;
-    }
 
 }
      

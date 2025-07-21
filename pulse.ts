@@ -71,8 +71,8 @@ namespace leaguepulse {
     //% command.min=0 command.max=4294967295 command.defl=0xFF00FF00
     //% carrierFreqKHz.min=30 carrierFreqKHz.max=50 carrierFreqKHz.defl=38
     //% group="IR Commands"
-    export function sendCommand(pin: DigitalPin, command: number, carrierFreqKHz: number = 38): void {
-        sendCommandCpp(pin as number, command, carrierFreqKHz)
+    export function sendCommand(pin: DigitalPin, command: number): void {
+        sendCommandCpp(pin as number, command)
     }
 
     /**
@@ -101,7 +101,7 @@ namespace leaguepulse {
      * @param carrierFreqKHz the carrier frequency in kHz
      */
     //% shim=leaguepulse::sendCommand
-    function sendCommandCpp(pin: number, command: number, carrierFreqKHz: number): void {
+    function sendCommandCpp(pin: number, command: number): void {
         // Simulator implementation would go here
     }
 
