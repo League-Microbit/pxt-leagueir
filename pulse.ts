@@ -76,6 +76,22 @@ namespace leaguepulse {
     }
 
     /**
+     * Receive an NEC format IR command on a digital pin with timeout
+     * @param pin the digital pin to receive command from
+     * @param timeout timeout in milliseconds to wait for command
+     */
+    //% blockId="leaguepulse_recv_command" 
+    //% block="receive NEC command on pin %pin with %timeout ms timeout"
+    //% weight=60
+    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
+    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
+    //% timeout.min=1 timeout.max=10000 timeout.defl=1000
+    //% group="IR Commands"
+    export function recvCommand(pin: DigitalPin, timeout: number): number {
+        return recvCommandCpp(pin as number, timeout)
+    }
+
+    /**
      * Function used for simulator, actual implementation is in pulse.cpp
      * @param pin the digital pin number
      * @param delay delay in microseconds for each high and low state (int16_t)
@@ -103,6 +119,16 @@ namespace leaguepulse {
     //% shim=leaguepulse::sendCommand
     function sendCommandCpp(pin: number, command: number): void {
         // Simulator implementation would go here
+    }
+
+    /**
+     * Function used for simulator, actual implementation is in pulse.cpp
+     * @param pin the digital pin number
+     * @param timeout timeout in milliseconds
+     */
+    //% shim=leaguepulse::recvCommand
+    function recvCommandCpp(pin: number, timeout: number): number {
+        return 100
     }
 
 
