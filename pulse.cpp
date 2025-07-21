@@ -92,15 +92,25 @@ namespace leaguepulse {
     * @param highMicros microseconds to send carrier signal
     * @param lowMicros microseconds to send no signal
     */
-    void sendIrBit(MicroBitPin *p, int16_t highMicros, int16_t lowMicros) {
+    void sendIrBit(MicroBitPin *p, int16_t highTime, int16_t lowTime) {
 
-        // Send carrier signal (50% duty cycle = 511)
-        p->setAnalogValue(511);
-        sleep_us(highMicros);
-        
-        // Turn off carrier
-        p->setAnalogValue(1);
-        sleep_us(lowMicros);
+        if (false){
+            // Set up 38kHz carrier (period = 26us)
+            p->setAnalogPeriodUs(26);
+
+            // Send carrier signal (50% duty cycle = 511)
+            p->setAnalogValue(511);
+            sleep_us(highTime);
+
+            // Turn off carrier
+            p->setAnalogValue(1);
+            sleep_us(lowTime);
+        } else {
+            p->setDigitalValue(1);
+            sleep_us(highTime);
+            p->setDigitalValue(0);
+            sleep_us(lowTime);
+        }
     }
 
     /*
@@ -136,9 +146,8 @@ namespace leaguepulse {
         const int16_t ONE_SPACE = ONE_BIT-BIT_MARK;     // 1.69ms space for '1'
         const int16_t STOP_BIT = 560;       // Final 560us mark
 
-        // Set up 38kHz carrier (period = 26us)
-        p->setAnalogPeriodUs(26);
 
+   
         // Send AGC header burst
         dp->setDigitalValue(HIGH); // Debug pin high
         sendIrBit(p, AGC_BURST, AGC_SPACE);
@@ -157,7 +166,7 @@ namespace leaguepulse {
         
         dp->setDigitalValue(LOW); // Debug pin low
         // Ensure line is low for message gap
-        sleep_us(10000); // 10ms minimum gap
+        sleep_us(40000); // 40ms minimum gap
     }
 
     /*
