@@ -138,11 +138,11 @@ namespace leaguepulse {
         //return;
 
         // Send final stop bit
-        sendIrBit(p, STOP_BIT, 0);
+        sendIrBit(p, STOP_BIT, 10000);
 
         // Yield to other fibers (cooperative multitasking)
         // Message gap of at least 40ms before next command
-        fiber_sleep(40);
+        //fiber_sleep(40);
 
     }
 

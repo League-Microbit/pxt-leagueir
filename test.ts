@@ -13,5 +13,6 @@ while(true) {
     //leaguepulse.generatePulsesCpp(DigitalPin.P0, 1, 10000)
 
     leaguepulse.sendCommand(DigitalPin.P0, 0xF0F0FF00); 
+    basic.pause(30)
     
 }
