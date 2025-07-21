@@ -19,7 +19,7 @@ namespace leaguepulse {
     //% delay.min=1 delay.max=65535 delay.defl=1000
     //% count.min=1 count.max=1000 count.defl=10
     //% group="Pulse Generation"
-    export function generatePulsesCpp(pin: DigitalPin, delay: number, count: number): void {
+    export function generatePulsesCpp(pin: DigitalPin, count: number, delay: number): void {
         pulse(pin as number, delay, count)
     }
 
@@ -37,7 +37,7 @@ namespace leaguepulse {
     //% delay.min=1 delay.max=65535 delay.defl=1000
     //% count.min=1 count.max=1000 count.defl=10
     //% group="Pulse Generation"
-    export function generatePulsesTs(pin: DigitalPin, delay: number, count: number): void {
+    export function generatePulsesTs(pin: DigitalPin, count: number, delay: number): void {
         for (let i = 0; i < count; i++) {
             pins.digitalWritePin(pin, 1)
             control.waitMicros(delay)
@@ -58,21 +58,21 @@ namespace leaguepulse {
     }
 
     /**
-     * Send a PWM command on a digital pin
+     * Send an NEC format IR command on a digital pin
      * @param pin the digital pin to send command on
-     * @param command the 32-bit command to send
-     * @param periodMs the period in milliseconds for PWM timing, 26 == 38kHz
+     * @param command the 32-bit NEC command to send
+     * @param carrierFreqKHz the carrier frequency in kHz (typically 38kHz for IR)
      */
     //% blockId="leaguepulse_send_command" 
-    //% block="send command %command on pin %pin with %periodMs ms period"
+    //% block="send NEC command %command on pin %pin with %carrierFreqKHz kHz carrier"
     //% weight=70
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
     //% command.min=0 command.max=4294967295 command.defl=0xFF00FF00
-    //% periodUs.min=1 periodUs.max=100 periodUs.defl=10
-    //% group="PWM Commands"
-    export function sendCommand(pin: DigitalPin, command: number, periodUs: number = 26): void {
-        sendCommandCpp(pin as number, command, periodUs)
+    //% carrierFreqKHz.min=30 carrierFreqKHz.max=50 carrierFreqKHz.defl=38
+    //% group="IR Commands"
+    export function sendCommand(pin: DigitalPin, command: number, carrierFreqKHz: number = 38): void {
+        sendCommandCpp(pin as number, command, carrierFreqKHz)
     }
 
     /**
@@ -98,10 +98,10 @@ namespace leaguepulse {
      * Function used for simulator, actual implementation is in pulse.cpp
      * @param pin the digital pin number
      * @param command the 32-bit command to send
-     * @param periodUs the period in microseconds
+     * @param carrierFreqKHz the carrier frequency in kHz
      */
     //% shim=leaguepulse::sendCommand
-    function sendCommandCpp(pin: number, command: number, periodUs: number): void {
+    function sendCommandCpp(pin: number, command: number, carrierFreqKHz: number): void {
         // Simulator implementation would go here
     }
 

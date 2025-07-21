@@ -87,36 +87,77 @@ namespace leaguepulse {
     }
 
     /*
-    * Send a command. the command it composed of:
-    * A 9ms leading pulse burst (high)
-    * A 4.5ms space (low)
-    * The 32 bit command, PWM modulated 
-    * A final 560us pulse burst (high)
+    * Send an IR bit using PWM carrier frequency (38kHz)
+    * @param pin the output pin
+    * @param highMicros microseconds to send carrier signal
+    * @param lowMicros microseconds to send no signal
+    */
+    void sendIrBit(MicroBitPin *p, int16_t highMicros, int16_t lowMicros) {
+
+        // Send carrier signal (50% duty cycle = 511)
+        p->setAnalogValue(511);
+        sleep_us(highMicros);
+        
+        // Turn off carrier
+        p->setAnalogValue(1);
+        sleep_us(lowMicros);
+    }
+
+    /*
+    * Send an NEC format IR command. The NEC protocol consists of:
+    * 1. AGC burst: 9ms ON, 4.5ms OFF
+    * 2. 32 data bits (address + ~address + command + ~command)
+    * 3. Each bit: 560us ON + (560us OFF for '0' or 1690us OFF for '1')
+    * 4. Final stop bit: 560us ON
+    * 5. Message gap of at least 40ms before next command
     * */
 
     //%
-    void sendCommand(int pin, uint32_t command, int16_t periodUs) {
+    void sendCommand(int pin, uint32_t command, int16_t carrierFreqKHz) {
 
         MicroBitPin *p = getPin(pin);
-        if (!p) return;
+        MicroBitPin *dp = getPin(MICROBIT_ID_IO_P1); // Debug pin
 
-        int16_t highTime_1 = periodUs * 2 / 3; // 66% duty cycle for a 1
-        int16_t highTime_0 = periodUs / 3;     // 33% duty cycle for a 0
-        int16_t lowTime = periodUs - highTime_1; // Remainder of the period
+        if (!p)
+            return;
 
-        // Send the header
-        p->setDigitalValue(1);
-        sleep_us(9000); // 9ms
-        p->setDigitalValue(0);
-        sleep_us(4500); // 4.5ms
+        // NEC protocol timing (all in microseconds)
 
-        // Send the command
-        sendPwmWord(pin, command, highTime_1, highTime_0, lowTime);
+        const int16_t HIGH = 1;
+        const int16_t LOW = 0;
 
-        // Send the final pulse
-        p->setDigitalValue(1);
-        sleep_us(560); // 560us
-        p->setDigitalValue(0);
+        const int16_t AGC_BURST = 9000 + 300;     // 9ms AGC burst +300 to fix timing error
+        const int16_t AGC_SPACE = 4500 + 100;     // 4.5ms space +300 to fix timing error
+        const int16_t ONE_BIT = 2250 + 60;     // total length of a 1 bit
+        const int16_t ZERO_BIT = 1120 + 30;     // total length of a 0 bit
+        const int16_t BIT_MARK = 560;       // 560us mark for all bits
+
+        const int16_t ZERO_SPACE = ZERO_BIT-BIT_MARK;     // 560us space for '0'
+        const int16_t ONE_SPACE = ONE_BIT-BIT_MARK;     // 1.69ms space for '1'
+        const int16_t STOP_BIT = 560;       // Final 560us mark
+
+        // Set up 38kHz carrier (period = 26us)
+        p->setAnalogPeriodUs(26);
+
+        // Send AGC header burst
+        dp->setDigitalValue(HIGH); // Debug pin high
+        sendIrBit(p, AGC_BURST, AGC_SPACE);
+
+        // Send 32 data bits (MSB first)
+        for (int i = 31; i >= 0; i--) {
+            if (command & (1UL << i)) {
+                sendIrBit(p, BIT_MARK, ONE_SPACE);    // '1' bit
+            } else {
+                sendIrBit(p, BIT_MARK, ZERO_SPACE);   // '0' bit
+            }
+        }
+
+        // Send final stop bit
+        sendIrBit(p, STOP_BIT, 0);  // Stop bit with no space after
+        
+        dp->setDigitalValue(LOW); // Debug pin low
+        // Ensure line is low for message gap
+        sleep_us(10000); // 10ms minimum gap
     }
 
     /*
