@@ -94,7 +94,16 @@ namespace leaguepulse {
     */
     void sendIrBit(MicroBitPin *p, int16_t highTime, int16_t lowTime) {
 
-        if (false){
+        if (!p) return;
+
+        if (true){
+            // No carrier, just use digital pin
+            p->setDigitalValue(1);
+            sleep_us(highTime);
+            p->setDigitalValue(0);
+            sleep_us(lowTime);
+
+        } else {
             // Set up 38kHz carrier (period = 26us)
             p->setAnalogPeriodUs(26);
 
@@ -104,11 +113,6 @@ namespace leaguepulse {
 
             // Turn off carrier
             p->setAnalogValue(1);
-            sleep_us(lowTime);
-        } else {
-            p->setDigitalValue(1);
-            sleep_us(highTime);
-            p->setDigitalValue(0);
             sleep_us(lowTime);
         }
     }
@@ -125,12 +129,6 @@ namespace leaguepulse {
     //%
     void sendCommand(int pin, uint32_t command, int16_t carrierFreqKHz) {
 
-        MicroBitPin *p = getPin(pin);
-        MicroBitPin *dp = getPin(MICROBIT_ID_IO_P1); // Debug pin
-
-        if (!p)
-            return;
-
         // NEC protocol timing (all in microseconds)
 
         const int16_t HIGH = 1;
@@ -146,10 +144,18 @@ namespace leaguepulse {
         const int16_t ONE_SPACE = ONE_BIT-BIT_MARK;     // 1.69ms space for '1'
         const int16_t STOP_BIT = 560;       // Final 560us mark
 
+        MicroBitPin *p = getPin(pin);
+        MicroBitPin *dp = getPin(MICROBIT_ID_IO_P1); // Debug pin
 
-   
-        // Send AGC header burst
         dp->setDigitalValue(HIGH); // Debug pin high
+        if (!p){
+            sleep_us(2000);
+            dp->setDigitalValue(LOW); // Debug pin low
+            return;
+        }
+
+        // Send AGC header burst
+     
         sendIrBit(p, AGC_BURST, AGC_SPACE);
 
         // Send 32 data bits (MSB first)
@@ -251,3 +257,4 @@ namespace leaguepulse {
     }
 
 }
+     
