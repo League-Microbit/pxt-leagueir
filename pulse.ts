@@ -5,6 +5,110 @@
 //% color=#f44242 icon="\uf185"
 namespace leaguepulse {
 
+
+    const AGC_MARK = 9000; // AGC MARK = 9ms
+    const AGC_MARK_MAX = AGC_MARK + 500;
+    const AGC_MARK_MIN = AGC_MARK - 500;
+    const AGC_SPACE = 4500; // AGC SPACE = 4.5ms
+    const AGC_SPACE_MAX = AGC_SPACE + 500;
+    const AGC_SPACE_MIN = AGC_SPACE - 500;
+
+    const ONE_BIT = 2250;     // total length of a 1 bit
+    const ZERO_BIT = 1120;    // total length of a 0 bit
+    const BIT_MARK = 560;     // 560us mark for all bits
+
+    const BIT_MARK_MAX = BIT_MARK + 75;
+    const BIT_MARK_MIN = BIT_MARK - 75;
+
+    const ZERO_SPACE = ZERO_BIT - BIT_MARK;    // 560us space for '0'
+    const ZERO_SPACE_MAX = ZERO_SPACE + 150;    // 760us max for '0'
+    const ZERO_SPACE_MIN = ZERO_SPACE - 150;    // 460us min for '0'
+
+    const ONE_SPACE = ONE_BIT - BIT_MARK;      // 1.69ms space for '1'
+    const ONE_SPACE_MAX = ONE_SPACE + 150;      // 1.89ms max for '1'
+    const ONE_SPACE_MIN = ONE_SPACE - 150;      // 1.64ms min for '1'
+    const STOP_BIT = 560;                      // Final 560us mark
+
+
+    /**
+     * Reads a pulse signal from a digital pin and decodes it into a numeric value.
+     * 
+     * This function reads a 32-bit value encoded in pulse-width modulation from the specified pin.
+     * It uses an automatic gain control (AGC) mechanism to detect the header pulse, followed by
+     * reading 32 data bits. The function toggles a debug pin during processing to facilitate debugging.
+     *
+     * @param pin - The digital pin to read the pulse signal from
+     * @param dp - Debug pin that toggles during signal processing
+     * @returns The decoded 32-bit numeric value, or a negative error code:
+     */
+    //% blockId="leaguepulse_read_pulse" 
+    //% block="read pulse from pin %pin with debug pin %dp"
+    //% weight=55
+    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
+    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
+    //% dp.fieldEditor="gridpicker" dp.fieldOptions.columns=4
+    //% dp.fieldOptions.tooltips="false" dp.fieldOptions.width="300"
+    //% group="IR Commands"
+    export function readPulse(pin: DigitalPin, dp: DigitalPin): number {
+        let d: number;
+
+        pins.digitalWritePin(dp, 0);
+        pins.digitalWritePin(dp, 1);
+        pins.digitalWritePin(dp, 0);
+
+        // Reset the value of n for a new reading
+        n = 0;
+
+        // Wait for pin to go LOW (0) before starting to read pulses
+        while (pins.digitalReadPin(pin) === 1) {
+            // Wait for pin to go LOW
+            basic.pause(1);
+        }
+
+        while (true) {
+            d = leaguepulse.timePulse(pin, 1, AGC_MARK_MAX); // header HIGH
+            if (d > AGC_MARK_MIN) {
+                break
+            }
+        }
+
+        let v = 1;
+        pins.digitalWritePin(dp, v);
+        v = v ? 0 : 1;
+
+        d  = leaguepulse.timePulse(pin, 0, AGC_SPACE_MAX); // header LOW
+        if (d < AGC_SPACE_MIN ) return -2;
+
+
+        for (let i = 0; i < 32; i++) {
+            pins.digitalWritePin(dp, v);
+            v = v ? 0 : 1;
+
+            d = leaguepulse.timePulse(pin, 1, BIT_MARK_MAX); // bit HIGH
+            if (d < BIT_MARK_MIN ) return -(10*i) -3;
+
+            d = leaguepulse.timePulse(pin, 0, ONE_SPACE_MAX); // bit LOW
+            if (d < ZERO_SPACE_MIN ) return -(10*i) -4;
+
+            // Determine if bit is 0 or 1 based on duration of LOW pulse
+            if (d > ONE_SPACE_MIN) {
+                // bit is a 1
+                n |= (1 << (31 - i));
+            } else {
+                // bit is a 0
+                n &= ~(1 << (31 - i));
+            }
+    
+        }
+
+        d = leaguepulse.timePulse(pin, 1, STOP_BIT + 200); // final HIGH
+
+        return n;
+        
+
+    }
+
+
     /**
     * Generate pulses on a digital pin
     * @param pin the digital pin to pulse
@@ -135,9 +239,11 @@ namespace leaguepulse {
     /**
      * Function used for simulator, actual implementation is in pulse.cpp
      * @param pin the digital pin number
-     * @param delay delay in microseconds for each high and low state (int16_t)
-     * @param count number of pulses to generate (int32_t)
+     * @param state the state to wait for (0 for low, 1 for high)
+     * @param timeout timeout in microseconds to wait for pulse
+     * @returns the duration of the pulse in microseconds, or 0 if timeout occurs
      */
+
     //% shim=leaguepulse::pulse
     function pulse(pin: number, delay: number, count: number): void {
 
