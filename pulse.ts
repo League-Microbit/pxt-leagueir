@@ -5,6 +5,7 @@
 //% color=#f44242 icon="\uf185"
 namespace leaguepulse {
 
+    let n = 0; // Global variable to store the pulse reading result
 
     const AGC_MARK = 9000; // AGC MARK = 9ms
     const AGC_MARK_MAX = AGC_MARK + 500;
@@ -49,7 +50,7 @@ namespace leaguepulse {
     //% dp.fieldEditor="gridpicker" dp.fieldOptions.columns=4
     //% dp.fieldOptions.tooltips="false" dp.fieldOptions.width="300"
     //% group="IR Commands"
-    export function readNEC(pin: DigitalPin, dp: DigitalPin): number {
+    export function readNEC(pin: DigitalPin): number {
         let d: number;
 
         // Reset the value of n for a new reading
@@ -94,6 +95,43 @@ namespace leaguepulse {
         return n;
         
 
+    }
+
+    /**
+     * Start listening for NEC IR commands in the background
+     * @param pin the digital pin to receive IR commands from
+     * @param dp debug pin for timing visualization
+     * @param handler function to call when a command is received
+     */
+    //% blockId="leaguepulse_on_nec_received" 
+    //% block="on NEC received from pin %pin with debug pin %dp"
+    //% weight=54
+    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
+    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
+    //% group="IR Commands"
+    export function onNECReceived(pin: DigitalPin,  handler: (address: number, command: number) => void): void {
+        control.inBackground(() => {
+            while (true) {
+                let result = readNEC(pin);
+                let address: number;
+                let command: number;
+                
+                if (result < 0) {
+                    // Error occurred, return address=0 and command=error code
+                    address = 0;
+                    command = result;
+                } else {
+                    // Split 32-bit result into high 16 bits (address) and low 16 bits (command)
+                    address = (result >> 16) & 0xFFFF;
+                    command = result & 0xFFFF;
+                }
+                
+                handler(address, command);
+                
+                // Small delay before next reading
+                basic.pause(10);
+            }
+        });
     }
 
 

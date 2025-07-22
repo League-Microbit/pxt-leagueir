@@ -61,7 +61,7 @@ function testTimePulse() {
 
     while (true) {
         pins.digitalWritePin(DigitalPin.P2, 1)
-        let d: number = leaguepulse.readNEC(DigitalPin.P1, dp);
+        let d: number = leaguepulse.readNEC(DigitalPin.P1);
         pins.digitalWritePin(dp, 0);
         pins.digitalWritePin(DigitalPin.P2, 0)
         basic.showNumber(d);
@@ -69,4 +69,26 @@ function testTimePulse() {
     }
 }
 
-testTimePulse();
+function testOnNECReceived() {
+    serial.writeLine("Starting NEC receiver test...");
+    
+    leaguepulse.onNECReceived(DigitalPin.P1, function (address: number, command: number) {
+        if (address === 0) {
+            // Error occurred, command contains error code
+            serial.writeLine("Error: " + command);
+        } else {
+            // Valid command received
+            serial.writeLine("Address: " + address + ", Command: " + command);
+            serial.writeLine("Address (hex): 0x" + address.toString(16) +
+                ", Command (hex): 0x" + command.toString(16));
+        }
+    });
+    
+    // Keep the main program running
+    while (true) {
+        basic.pause(1000);
+    }
+}
+
+
+testOnNECReceived();
