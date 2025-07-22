@@ -92,6 +92,47 @@ namespace leaguepulse {
     }
 
     /**
+     * Measure pulse timing on a digital pin
+     * @param pin the digital pin to measure pulse on
+     * @param timeout timeout in microseconds to wait for pulse
+     * @param highMax maximum expected high pulse duration in microseconds
+     * @param lowMax maximum expected low pulse duration in microseconds
+     */
+    //% blockId="leaguepulse_pulse_timer" 
+    //% block="measure pulse on pin %pin timeout %timeout μs high max %highMax μs low max %lowMax μs"
+    //% weight=50
+    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
+    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
+    //% timeout.min=1 timeout.max=100000 timeout.defl=10000
+    //% highMax.min=1 highMax.max=50000 highMax.defl=1000
+    //% lowMax.min=1 lowMax.max=50000 lowMax.defl=1000
+    //% group="Pulse Timing"
+    export function pulseTimer(pin: DigitalPin, timeout: number, highMax: number, lowMax: number): number {
+        return pulseTimerCpp(pin as number, timeout, highMax, lowMax);
+    }
+
+    /**
+     * Time a single pulse on a digital pin
+     * @param pin the digital pin to measure pulse on
+     * @param state the state to wait for (0 for low, 1 for high)
+     * @param timeout timeout in microseconds to wait for pulse
+     */
+    //% blockId="leaguepulse_time_pulse" 
+    //% block="time pulse on pin %pin state %state timeout %timeout μs"
+    //% weight=49
+    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
+    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
+    //% state.min=0 state.max=1 state.defl=1
+    //% timeout.min=1 timeout.max=100000 timeout.defl=10000
+    //% group="Pulse Timing"
+    export function timePulse(pin: DigitalPin, state: number, timeout: number): number {
+        return timePulseCpp(pin as number, state, timeout);
+    }
+
+
+    
+
+    /**
      * Function used for simulator, actual implementation is in pulse.cpp
      * @param pin the digital pin number
      * @param delay delay in microseconds for each high and low state (int16_t)
@@ -130,6 +171,27 @@ namespace leaguepulse {
     function recvCommandCpp(pin: number, timeout: number): number {
         return 100
     }
+
+    /**
+     * Function used for simulator, actual implementation is in pulse.cpp
+     * @param pin the digital pin number
+     * @param timeout timeout in microseconds
+     * @param highMax maximum expected high pulse duration in microseconds
+     * @param lowMax maximum expected low pulse duration in microseconds
+     */
+    //% shim=leaguepulse::pulseSpaceTime
+    function pulseTimerCpp(pin: number, timeout: number, highMax: number, lowMax: number): number {
+        return 0
+    }
+
+    /**
+     * 
+     */
+    //% shim=leaguepulse::timePulse
+    function timePulseCpp(pin: number, state: number, timeout: number): number {
+        return 0
+    }
+
 
 
 }
