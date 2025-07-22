@@ -55,10 +55,13 @@ function testPulseTiming() {
 
 function testTimePulse() {
     let dp: DigitalPin = DigitalPin.P0;
+    pins.digitalWritePin(DigitalPin.P11, 0)
+    pins.digitalWritePin(DigitalPin.P12, 0)
     
+
     while (true) {
         pins.digitalWritePin(DigitalPin.P2, 1)
-        let d: number = leaguepulse.readPulse(DigitalPin.P1, dp);
+        let d: number = leaguepulse.readNEC(DigitalPin.P1, dp);
         pins.digitalWritePin(dp, 0);
         pins.digitalWritePin(DigitalPin.P2, 0)
         basic.showNumber(d);

@@ -160,7 +160,7 @@ namespace leaguepulse {
     }
 
 
-    int waitForPinState(MicroBitPin *p, int state, int timeout) {
+    inline int waitForPinState(MicroBitPin *p, int state, int timeout) {
         if (!p) return 0;
 
         int startTime = currentTimeMicros();

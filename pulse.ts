@@ -49,20 +49,15 @@ namespace leaguepulse {
     //% dp.fieldEditor="gridpicker" dp.fieldOptions.columns=4
     //% dp.fieldOptions.tooltips="false" dp.fieldOptions.width="300"
     //% group="IR Commands"
-    export function readPulse(pin: DigitalPin, dp: DigitalPin): number {
+    export function readNEC(pin: DigitalPin, dp: DigitalPin): number {
         let d: number;
-
-        pins.digitalWritePin(dp, 0);
-        pins.digitalWritePin(dp, 1);
-        pins.digitalWritePin(dp, 0);
 
         // Reset the value of n for a new reading
         n = 0;
 
         // Wait for pin to go LOW (0) before starting to read pulses
-        while (pins.digitalReadPin(pin) === 1) {
-            // Wait for pin to go LOW
-            basic.pause(1);
+      
+        while (pins.digitalReadPin(pin) === 0) { // pin is inverted
         }
 
         while (true) {
@@ -72,17 +67,10 @@ namespace leaguepulse {
             }
         }
 
-        let v = 1;
-        pins.digitalWritePin(dp, v);
-        v = v ? 0 : 1;
-
         d  = leaguepulse.timePulse(pin, 0, AGC_SPACE_MAX); // header LOW
         if (d < AGC_SPACE_MIN ) return -2;
 
-
         for (let i = 0; i < 32; i++) {
-            pins.digitalWritePin(dp, v);
-            v = v ? 0 : 1;
 
             d = leaguepulse.timePulse(pin, 1, BIT_MARK_MAX); // bit HIGH
             if (d < BIT_MARK_MIN ) return -(10*i) -3;
@@ -107,6 +95,8 @@ namespace leaguepulse {
         
 
     }
+
+
 
 
     /**
