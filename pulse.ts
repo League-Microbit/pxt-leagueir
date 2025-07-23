@@ -62,6 +62,11 @@ namespace leaguepulse {
         return 0
     }
 
+    /**
+     * Read the AGC header from the IR signal
+     * @param pin the digital pin to read from
+     * @returns true if a valid AGC header was detected, false otherwise
+     */
     export function readACGHeader(pin: DigitalPin): boolean {
 
         let pulseTime = 0;
@@ -78,7 +83,11 @@ namespace leaguepulse {
 
     }
 
-
+    /**
+     * Read a single bit from the IR signal
+     * @param pin the digital pin to read from
+     * @returns 1 for a '1' bit, 0 for a '0' bit, -1 for error
+     */
     export function readNecBit(pin: DigitalPin): number {
 
         let pulseTime = 0;
@@ -205,8 +214,6 @@ namespace leaguepulse {
         });
     }
 
-
-
     /**
      * Send an NEC format IR command on a digital pin
      * @param pin the digital pin to send command on
@@ -224,7 +231,6 @@ namespace leaguepulse {
     export function sendCommand(pin: DigitalPin, command: number): void {
         sendCommandCpp(pin as number, command)
     }
-
 
     /**
      * Function used for simulator, actual implementation is in pulse.cpp

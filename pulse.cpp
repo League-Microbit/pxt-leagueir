@@ -23,31 +23,6 @@ using namespace pxt;
 namespace leaguepulse {
 
 
-    //%
-    void pulse(int pin, int16_t delay, int32_t count) {
-        // Test how fast we can toggle a pin
-        MicroBitPin *p = getPin(pin);
-        if (!p) return;
-        
-
-        for (int32_t i = 0; i < count; i++) {
-            // Set pin high
-            p->setDigitalValue(1);
-            // Wait for delay microseconds
-            if(delay) {
-                sleep_us(delay);
-            }
-
-            // Set pin low
-            p->setDigitalValue(0);
-            // Wait for delay microseconds
-
-            if(delay){
-                sleep_us(delay);
-            }
-        }
-    }
-
 
     /*
     * Send an IR bit using PWM carrier frequency (38kHz)
