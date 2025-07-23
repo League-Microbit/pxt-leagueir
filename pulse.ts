@@ -5,7 +5,25 @@
 //% color=#f44242 icon="\uf185"
 namespace leaguepulse {
 
-    let n = 0; // Global variable to store the pulse reading result
+    export let irError = "";
+
+    export function toHex(num: number): string {
+        // Convert to 32-bit unsigned integer
+        num = num >>> 0;
+        
+        let hex = "";
+        const hexChars = "0123456789ABCDEF";
+        
+        // Extract each hex digit (4 bits at a time) from right to left
+        for (let i = 0; i < 8; i++) {
+            hex = hexChars[num & 0xF] + hex;
+            num = num >>> 4;
+        }
+    
+   
+        return hex;
+    }
+            
 
     const AGC_MARK = 9000; // AGC MARK = 9ms
     const AGC_MARK_MAX = AGC_MARK + 500;
@@ -19,21 +37,21 @@ namespace leaguepulse {
     const BIT_MARK = 560;     // 560us mark for all bits
 
     const BIT_MARK_MAX = BIT_MARK + 75;
-    const BIT_MARK_MIN = BIT_MARK - 75;
+    const BIT_MARK_MIN = BIT_MARK - 120;
 
     const ZERO_SPACE = ZERO_BIT - BIT_MARK;    // 560us space for '0'
     const ZERO_SPACE_MAX = ZERO_SPACE + 150;    // 760us max for '0'
-    const ZERO_SPACE_MIN = ZERO_SPACE - 150;    // 460us min for '0'
+    const ZERO_SPACE_MIN = ZERO_SPACE - 170;    // 460us min for '0'
 
     const ONE_SPACE = ONE_BIT - BIT_MARK;      // 1.69ms space for '1'
     const ONE_SPACE_MAX = ONE_SPACE + 150;      // 1.89ms max for '1'
-    const ONE_SPACE_MIN = ONE_SPACE - 150;      // 1.64ms min for '1'
+    const ONE_SPACE_MIN = ONE_SPACE - 170;      // 1.64ms min for '1'
     const STOP_BIT = 560;                      // Final 560us mark
 
 
         // Constants for pin states
-    export const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
-    export const IR_LOW = 1;  // IR LED is considered "low" when the digital pin reads 1
+    const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
+    const IR_LOW = 1;  // IR LED is considered "low" when the digital pin reads 1
 
 
 
@@ -52,70 +70,96 @@ namespace leaguepulse {
         return false;
 
     }
+
+
+    export function readNecBit(pin: DigitalPin): number {
+
+        let pulseTime = 0;
+
+        pulseTime = leaguepulse.timePulse(pin, 1, BIT_MARK_MAX + 200);
+
+        if (pulseTime < 0) {
+            irError = "Timeout waiting for bit mark";
+            return -1;
+        }
+
+        if (pulseTime > BIT_MARK_MIN) {
+
+            pulseTime = leaguepulse.timePulse(pin, 0, ONE_SPACE_MAX);
+
+            if (pulseTime < 0) {
+                irError = "Timeout waiting for one space";
+                return -1;
+            }
+
+            if (pulseTime > ONE_SPACE_MIN && pulseTime < ONE_SPACE_MAX) {
+                return 1;
+            } else if (pulseTime > ZERO_SPACE_MIN && pulseTime < ZERO_SPACE_MAX) {
+                return 0;
+            } else {
+                irError = "Invalid space duration: " + pulseTime;
+                return -1;
+            }
+
+        } else {
+            irError = "Invalid mark duration: " + pulseTime;
+            return -1;
+        }
+
+    }
     /**
-     * Reads a pulse signal from a digital pin and decodes it into a numeric value.
-     * 
-     * This function reads a 32-bit value encoded in pulse-width modulation from the specified pin.
-     * It uses an automatic gain control (AGC) mechanism to detect the header pulse, followed by
-     * reading 32 data bits. The function toggles a debug pin during processing to facilitate debugging.
-     *
-     * @param pin - The digital pin to read the pulse signal from
-     * @param dp - Debug pin that toggles during signal processing
-     * @returns The decoded 32-bit numeric value, or a negative error code:
+    * Read an NEC format IR command on a digital pin
      */
     //% blockId="leaguepulse_read_pulse" 
-    //% block="read pulse from pin %pin with debug pin %dp"
+    //% block="Read NEC format IR code from pin %pin"
     //% weight=55
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
     //% dp.fieldEditor="gridpicker" dp.fieldOptions.columns=4
     //% dp.fieldOptions.tooltips="false" dp.fieldOptions.width="300"
     //% group="IR Commands"
-    export function readNEC(pin: DigitalPin): number {
-        let d: number;
+    export function readNecCode(pin: DigitalPin) : number {
 
-        // Reset the value of n for a new reading
-        n = 0;
+    // Configure pins
+    pins.setPull(pin, PinPullMode.PullUp);  // Use pull-up resistor on the input pin
 
+    while (true) {
 
-        while (pins.digitalReadPin(pin) != IR_LOW) ; // Clear the line, wait for LOW
-
-        while (true) {
-            d = leaguepulse.timePulse(pin, 1, AGC_MARK_MAX); // header HIGH
-            if (d > AGC_MARK_MIN) {
-                break
-            }
+        if (!leaguepulse.readACGHeader(pin)) {
+            continue;
         }
 
-        d  = leaguepulse.timePulse(pin, 0, AGC_SPACE_MAX); // header LOW
-        if (d < AGC_SPACE_MIN ) return -2;
+        let n = 0;
+        let b = 0;
 
         for (let i = 0; i < 32; i++) {
+           
+            b = leaguepulse.readNecBit(pin);
+            if (b < 0) {
+                return 0
+               
+            }
 
-            d = leaguepulse.timePulse(pin, 1, BIT_MARK_MAX); // bit HIGH
-            if (d < BIT_MARK_MIN ) return -(10*i) -3;
-
-            d = leaguepulse.timePulse(pin, 0, ONE_SPACE_MAX); // bit LOW
-            if (d < ZERO_SPACE_MIN ) return -(10*i) -4;
-
-            // Determine if bit is 0 or 1 based on duration of LOW pulse
-            if (d > ONE_SPACE_MIN) {
+            if (b) {
                 // bit is a 1
                 n |= (1 << (31 - i));
             } else {
                 // bit is a 0
                 n &= ~(1 << (31 - i));
             }
-    
         }
 
-        d = leaguepulse.timePulse(pin, 1, STOP_BIT + 200); // final HIGH
-
+        // read the final stop bit
+        let pulseTime = leaguepulse.timePulse(pin, 1, STOP_BIT + 200);
+        if (pulseTime < STOP_BIT - 200 || pulseTime > STOP_BIT + 200) {
+            irError = "Invalid stop bit duration: " + pulseTime;
+            return 0;
+        }
+        
         return n;
 
-
     }
-
+}
     /**
      * Start listening for NEC IR commands in the background
      * @param pin the digital pin to receive IR commands from
@@ -131,18 +175,19 @@ namespace leaguepulse {
     export function onNECReceived(pin: DigitalPin,  handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
             while (true) {
-                let result = readNEC(pin);
+                let result = readNecCode(pin);
+     
                 let address: number;
                 let command: number;
                 
-                if (result < 0) {
+                if (result == 0) {
                     // Error occurred, return address=0 and command=error code
                     address = 0;
-                    command = result;
+                    command = 0;
                 } else {
                     // Split 32-bit result into high 16 bits (address) and low 16 bits (command)
-                    address = (result >> 16) & 0xFFFF;
-                    command = result & 0xFFFF;
+                    address = (result & 0xFFFF0000) >> 16;
+                    command = (result & 0x0000FFFF);
                 }
                 
                 handler(address, command);

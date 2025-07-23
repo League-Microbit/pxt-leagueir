@@ -59,25 +59,15 @@ namespace leaguepulse {
 
         if (!p) return;
 
-        if (false){
-            // No carrier, just use digital pin
-            p->setDigitalValue(1);
-            sleep_us(highTime);
-            p->setDigitalValue(0);
-            sleep_us(lowTime);
 
-        } else {
-            // Set up 38kHz carrier (period = 26us)
-            p->setAnalogPeriodUs(26);
+        // Send carrier signal (50% duty cycle = 511)
+        p->setAnalogValue(511);
+        sleep_us(highTime);
 
-            // Send carrier signal (50% duty cycle = 511)
-            p->setAnalogValue(511);
-            sleep_us(highTime);
-
-            // Turn off carrier
-            p->setAnalogValue(1);
-            sleep_us(lowTime);
-        }
+        // Turn off carrier
+        p->setAnalogValue(1);
+        sleep_us(lowTime);
+    
     }
 
     /*
@@ -94,14 +84,17 @@ namespace leaguepulse {
 
         // NEC protocol timing (all in microseconds)
 
-        const int16_t AGC_BURST = 9000 + 300;     // 9ms AGC burst +300 to fix timing error
+        const int16_t AGC_MARK = 9000 + 300;     // 9ms AGC burst +300 to fix timing error
         const int16_t AGC_SPACE = 4500 + 100;     // 4.5ms space +300 to fix timing error
-        const int16_t ONE_BIT = 2250 + 60;     // total length of a 1 bit
-        const int16_t ZERO_BIT = 1120 + 30;     // total length of a 0 bit
+
         const int16_t BIT_MARK = 560;       // 560us mark for all bits
+
+        const int16_t ONE_BIT = 2250;     // total length of a 1 bit
+        const int16_t ZERO_BIT = 1120;     // total length of a 0 bit
 
         const int16_t ZERO_SPACE = ZERO_BIT-BIT_MARK;     // 560us space for '0'
         const int16_t ONE_SPACE = ONE_BIT-BIT_MARK;     // 1.69ms space for '1'
+
         const int16_t STOP_BIT = 560;       // Final 560us mark
 
         
@@ -109,6 +102,8 @@ namespace leaguepulse {
         dp->setDigitalValue(1); // Debug pin high
 
         MicroBitPin *p = getPin(pin);
+                // Set up 38kHz carrier (period = 26us)
+        p->setAnalogPeriodUs(26);
 
         if (!p){
             sleep_us(2000);
@@ -116,9 +111,9 @@ namespace leaguepulse {
             return;
         }
 
-        // Send AGC header burst
+        // Send AGC header 
      
-        sendIrBit(p, AGC_BURST, AGC_SPACE);
+        sendIrBit(p, AGC_MARK, AGC_SPACE);
 
         // Send 32 data bits (MSB first)
         for (int i = 31; i >= 0; i--) {
@@ -162,51 +157,7 @@ namespace leaguepulse {
     }
 
 
-    /* Read NEC header
-    * busy waits for the NEC header and returns 1 if detected, 0 if not. 
-    The header consists of a 9ms HIGH pulse followed by a 4.5ms LOW pulse. ( after the output 
-    from the IR receiver is inverted)
 
-    */
-    int readNecHeader(MicroBitPin *p) {
-        if (!p) return -1;
-
-        int d = 0;
-
-        MicroBitPin *dp = getPin(MICROBIT_ID_IO_P3); // Debug pin
-
-        dp->setDigitalValue(0);
-        // Wait for the start bit
-        if (! (d = waitForPinState(p, 1, 1000000))){
-            return -2;
-        }
-
-        if(!( d = waitForPinState(p, 0, 9500))) return -3; // timeout
-
-        if (d < 8700) {
-            return -5;
-        }
-
-        dp->setDigitalValue(1);
-
-        // Wait for the space after the start bit
-        if(!(d = waitForPinState(p, 1, 4700))){
-            return -6;
-        }
-        dp->setDigitalValue(0);
-
-
-        if (d < 4300 ) {
-            return -7;
-        }
-
-        // Successfully received NEC header
-      
-        return 0;
-    }
-
-    
-  
     /*
     * Time one pulse*/
     //%
