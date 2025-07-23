@@ -36,22 +36,6 @@ function testSendCommand() {
 }
 
 
-function testRecvCommand() {
-    while (true) {
-        basic.clearScreen();
-        let receivedValue = leaguepulse.recvCommand(DigitalPin.P1, 1000); // 1 second timeout
-        basic.showNumber(receivedValue);
-        basic.pause(250);
-    }
-}
-
-function testPulseTiming() {
-    while (true) {
-        let lowDuration: number = leaguepulse.pulseTimer(DigitalPin.P1, 10000, 1000, 1000);
-        basic.showNumber(lowDuration);
-        basic.pause(250);
-    }
-}
 
 
 function testOnNECReceived() {

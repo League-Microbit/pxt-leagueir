@@ -49,19 +49,26 @@ namespace leaguepulse {
     const STOP_BIT = 560;                      // Final 560us mark
 
 
-        // Constants for pin states
+    // Constants for pin states
     const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
     const IR_LOW = 1;  // IR LED is considered "low" when the digital pin reads 1
 
 
+    /**
+     * 
+     */
+    //% shim=leaguepulse::timePulse
+    function timePulse(pin: number, state: number, timeout: number): number {
+        return 0
+    }
 
     export function readACGHeader(pin: DigitalPin): boolean {
 
         let pulseTime = 0;
 
-        pulseTime = leaguepulse.timePulse(pin, 1, AGC_MARK_MAX);
+        pulseTime = timePulse(pin, 1, AGC_MARK_MAX);
         if (pulseTime > 0 && pulseTime > AGC_MARK_MIN) {
-            pulseTime = leaguepulse.timePulse(pin, 0, AGC_SPACE_MAX);
+            pulseTime = timePulse(pin, 0, AGC_SPACE_MAX);
             if (pulseTime > 0 && pulseTime > AGC_SPACE_MIN) {
                 return true;
             }
@@ -76,7 +83,7 @@ namespace leaguepulse {
 
         let pulseTime = 0;
 
-        pulseTime = leaguepulse.timePulse(pin, 1, BIT_MARK_MAX + 200);
+        pulseTime = timePulse(pin, 1, BIT_MARK_MAX + 200);
 
         if (pulseTime < 0) {
             irError = "Timeout waiting for bit mark";
@@ -85,7 +92,7 @@ namespace leaguepulse {
 
         if (pulseTime > BIT_MARK_MIN) {
 
-            pulseTime = leaguepulse.timePulse(pin, 0, ONE_SPACE_MAX);
+            pulseTime = timePulse(pin, 0, ONE_SPACE_MAX);
 
             if (pulseTime < 0) {
                 irError = "Timeout waiting for one space";
@@ -118,48 +125,48 @@ namespace leaguepulse {
     //% dp.fieldEditor="gridpicker" dp.fieldOptions.columns=4
     //% dp.fieldOptions.tooltips="false" dp.fieldOptions.width="300"
     //% group="IR Commands"
-    export function readNecCode(pin: DigitalPin) : number {
+    export function readNecCode(pin: DigitalPin): number {
 
-    // Configure pins
-    pins.setPull(pin, PinPullMode.PullUp);  // Use pull-up resistor on the input pin
+        // Configure pins
+        pins.setPull(pin, PinPullMode.PullUp);  // Use pull-up resistor on the input pin
 
-    while (true) {
+        while (true) {
 
-        if (!leaguepulse.readACGHeader(pin)) {
-            continue;
-        }
+            if (!leaguepulse.readACGHeader(pin)) {
+                continue;
+            }
 
-        let n = 0;
-        let b = 0;
+            let n = 0;
+            let b = 0;
 
-        for (let i = 0; i < 32; i++) {
+            for (let i = 0; i < 32; i++) {
            
-            b = leaguepulse.readNecBit(pin);
-            if (b < 0) {
-                return 0
+                b = leaguepulse.readNecBit(pin);
+                if (b < 0) {
+                    return 0
                
+                }
+
+                if (b) {
+                    // bit is a 1
+                    n |= (1 << (31 - i));
+                } else {
+                    // bit is a 0
+                    n &= ~(1 << (31 - i));
+                }
             }
 
-            if (b) {
-                // bit is a 1
-                n |= (1 << (31 - i));
-            } else {
-                // bit is a 0
-                n &= ~(1 << (31 - i));
+            // read the final stop bit
+            let pulseTime = timePulse(pin, 1, STOP_BIT + 200);
+            if (pulseTime < STOP_BIT - 200 || pulseTime > STOP_BIT + 200) {
+                irError = "Invalid stop bit duration: " + pulseTime;
+                return 0;
             }
-        }
-
-        // read the final stop bit
-        let pulseTime = leaguepulse.timePulse(pin, 1, STOP_BIT + 200);
-        if (pulseTime < STOP_BIT - 200 || pulseTime > STOP_BIT + 200) {
-            irError = "Invalid stop bit duration: " + pulseTime;
-            return 0;
-        }
         
-        return n;
+            return n;
 
+        }
     }
-}
     /**
      * Start listening for NEC IR commands in the background
      * @param pin the digital pin to receive IR commands from
@@ -172,7 +179,7 @@ namespace leaguepulse {
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
     //% group="IR Commands"
-    export function onNECReceived(pin: DigitalPin,  handler: (address: number, command: number) => void): void {
+    export function onNECReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
             while (true) {
                 let result = readNecCode(pin);
@@ -200,59 +207,6 @@ namespace leaguepulse {
 
 
 
-
-    /**
-    * Generate pulses on a digital pin
-    * @param pin the digital pin to pulse
-    * @param count number of pulses to generate
-    * @param delay delay in microseconds for each high and low state
-    */
-    //% blockId="leaguepulse_pulse_c" 
-    //% block="generate %count pulses on pin %pin with %delay μs delay, implemented in CPP"
-    //% weight=100
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% delay.min=1 delay.max=65535 delay.defl=1000
-    //% count.min=1 count.max=1000 count.defl=10
-    //% group="Pulse Generation"
-    export function generatePulsesCpp(pin: DigitalPin, count: number, delay: number): void {
-        pulse(pin as number, delay, count)
-    }
-
-    /**
-     * Generate pulses on a digital pin (TypeScript implementation)
-     * @param pin the digital pin to pulse
-     * @param count number of pulses to generate
-     * @param delay delay in microseconds for each high and low state
-     */
-    //% blockId="leaguepulse_pulse_ts" 
-    //% block="generate %count pulses on pin %pin with %delay μs delay, implemented in TS"
-    //% weight=90
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% delay.min=1 delay.max=65535 delay.defl=1000
-    //% count.min=1 count.max=1000 count.defl=10
-    //% group="Pulse Generation"
-    export function generatePulsesTs(pin: DigitalPin, count: number, delay: number): void {
-        for (let i = 0; i < count; i++) {
-            pins.digitalWritePin(pin, 1)
-            control.waitMicros(delay)
-            pins.digitalWritePin(pin, 0)
-            control.waitMicros(delay)
-        }
-    }
-
-    /**
-     * Increment the counter and return the new value
-     */
-    //% blockId="leaguepulse_inc_count" 
-    //% block="increment count"
-    //% weight=80
-    //% group="Counter"
-    export function incCount(): number {
-        return incCountCpp()
-    }
-
     /**
      * Send an NEC format IR command on a digital pin
      * @param pin the digital pin to send command on
@@ -271,83 +225,6 @@ namespace leaguepulse {
         sendCommandCpp(pin as number, command)
     }
 
-    /**
-     * Receive an NEC format IR command on a digital pin with timeout
-     * @param pin the digital pin to receive command from
-     * @param timeout timeout in milliseconds to wait for command
-     */
-    //% blockId="leaguepulse_recv_command" 
-    //% block="receive NEC command on pin %pin with %timeout ms timeout"
-    //% weight=60
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% timeout.min=1 timeout.max=10000 timeout.defl=1000
-    //% group="IR Commands"
-    export function recvCommand(pin: DigitalPin, timeout: number): number {
-        return recvCommandCpp(pin as number, timeout)
-    }
-
-    /**
-     * Measure pulse timing on a digital pin
-     * @param pin the digital pin to measure pulse on
-     * @param timeout timeout in microseconds to wait for pulse
-     * @param highMax maximum expected high pulse duration in microseconds
-     * @param lowMax maximum expected low pulse duration in microseconds
-     */
-    //% blockId="leaguepulse_pulse_timer" 
-    //% block="measure pulse on pin %pin timeout %timeout μs high max %highMax μs low max %lowMax μs"
-    //% weight=50
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% timeout.min=1 timeout.max=100000 timeout.defl=10000
-    //% highMax.min=1 highMax.max=50000 highMax.defl=1000
-    //% lowMax.min=1 lowMax.max=50000 lowMax.defl=1000
-    //% group="Pulse Timing"
-    export function pulseTimer(pin: DigitalPin, timeout: number, highMax: number, lowMax: number): number {
-        return pulseTimerCpp(pin as number, timeout, highMax, lowMax);
-    }
-
-    /**
-     * Time a single pulse on a digital pin
-     * @param pin the digital pin to measure pulse on
-     * @param state the state to wait for (0 for low, 1 for high)
-     * @param timeout timeout in microseconds to wait for pulse
-     */
-    //% blockId="leaguepulse_time_pulse" 
-    //% block="time pulse on pin %pin state %state timeout %timeout μs"
-    //% weight=49
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% state.min=0 state.max=1 state.defl=1
-    //% timeout.min=1 timeout.max=100000 timeout.defl=10000
-    //% group="Pulse Timing"
-    export function timePulse(pin: DigitalPin, state: number, timeout: number): number {
-        return timePulseCpp(pin as number, state, timeout);
-    }
-
-
-    
-
-    /**
-     * Function used for simulator, actual implementation is in pulse.cpp
-     * @param pin the digital pin number
-     * @param state the state to wait for (0 for low, 1 for high)
-     * @param timeout timeout in microseconds to wait for pulse
-     * @returns the duration of the pulse in microseconds, or 0 if timeout occurs
-     */
-
-    //% shim=leaguepulse::pulse
-    function pulse(pin: number, delay: number, count: number): void {
-
-    }
-
-    /**
-     * Function used for simulator, actual implementation is in pulse.cpp
-     */
-    //% shim=leaguepulse::incCount
-    function incCountCpp(): number {
-        return 0
-    }
 
     /**
      * Function used for simulator, actual implementation is in pulse.cpp
@@ -359,37 +236,5 @@ namespace leaguepulse {
     function sendCommandCpp(pin: number, command: number): void {
         // Simulator implementation would go here
     }
-
-    /**
-     * Function used for simulator, actual implementation is in pulse.cpp
-     * @param pin the digital pin number
-     * @param timeout timeout in milliseconds
-     */
-    //% shim=leaguepulse::recvCommand
-    function recvCommandCpp(pin: number, timeout: number): number {
-        return 100
-    }
-
-    /**
-     * Function used for simulator, actual implementation is in pulse.cpp
-     * @param pin the digital pin number
-     * @param timeout timeout in microseconds
-     * @param highMax maximum expected high pulse duration in microseconds
-     * @param lowMax maximum expected low pulse duration in microseconds
-     */
-    //% shim=leaguepulse::pulseSpaceTime
-    function pulseTimerCpp(pin: number, timeout: number, highMax: number, lowMax: number): number {
-        return 0
-    }
-
-    /**
-     * 
-     */
-    //% shim=leaguepulse::timePulse
-    function timePulseCpp(pin: number, state: number, timeout: number): number {
-        return 0
-    }
-
-
 
 }
