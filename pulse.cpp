@@ -153,7 +153,7 @@ namespace leaguepulse {
 
 
 
-    inline int waitForPinState(MicroBitPin *p, int state, int timeout) {
+    inline int waitForPinState(MicroBitPin *p, int state, uint32_t timeout) {
         if (!p) return 0;
 
         int startTime = system_timer_current_time_us();
@@ -181,7 +181,7 @@ namespace leaguepulse {
         }
 
         // Measure the duration of the start bit
-        int startTime = currentTimeMicros();
+        int startTime = system_timer_current_time_us();
         if(!waitForPinState(p, 0, 9500)) return -3; // timeout
 
         int duration = system_timer_current_time_us() - startTime;
@@ -249,12 +249,12 @@ namespace leaguepulse {
         dp->setDigitalValue(1);
 
         // Measure the duration of the mark
-        int startTime = currentTimeMicros();
+        int startTime = system_timer_current_time_us();
         if (!waitForPinState(p, 0, BIT_MARK_MAX)){
             
             return -13;
         }
-        int duration = currentTimeMicros() - startTime;
+        int duration = system_timer_current_time_us() - startTime;
 
         dp->setDigitalValue(0);
 
@@ -262,11 +262,11 @@ namespace leaguepulse {
             return -14; // Invalid mark duration
         }
 
-        startTime = currentTimeMicros();
+        startTime = system_timer_current_time_us();
         if (!waitForPinState(p, 1, ONE_SPACE_MAX)){
             return -15;
         }
-        duration = currentTimeMicros() - startTime;
+        duration = system_timer_current_time_us() - startTime;
 
         dp->setDigitalValue(1);
 
@@ -359,7 +359,7 @@ namespace leaguepulse {
 
         result.highDuration = system_timer_current_time_us() - startTime;
 
-        startTime = currentTimeMicros();
+        startTime = system_timer_current_time_us();
         if (!waitForPinState(p, 1, lowMax)) {
             return result;
         }

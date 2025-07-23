@@ -70,18 +70,20 @@ function testTimePulse() {
 }
 
 function testOnNECReceived() {
+    serial.setBaudRate(BaudRate.BaudRate115200);
+
     serial.writeLine("Starting NEC receiver test...");
     
     leaguepulse.onNECReceived(DigitalPin.P1, function (address: number, command: number) {
         if (address === 0) {
             // Error occurred, command contains error code
-            serial.writeLine("Error: " + command);
+            serial.writeLine("E: " + command);
         } else {
             // Valid command received
-            serial.writeLine("Address: " + address + ", Command: " + command);
-            serial.writeLine("Address (hex): 0x" + address.toString(16) +
-                ", Command (hex): 0x" + command.toString(16));
+            serial.writeLine("A: " + address + ", C: " + command);
+
         }
+        basic.pause(100);
     });
     
     // Keep the main program running
