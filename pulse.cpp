@@ -151,8 +151,6 @@ namespace leaguepulse {
         return p->getDigitalValue() ? 0 : 1;
     }
 
-
-
     inline int waitForPinState(MicroBitPin *p, int state, uint32_t timeout) {
         if (!p) return 0;
 
@@ -160,8 +158,9 @@ namespace leaguepulse {
         while (readPin(p) != state) {
             if (system_timer_current_time_us() - startTime > timeout ) return 0; // timeout
         }
-        return 1; // state detected
+        return system_timer_current_time_us() - startTime;
     }
+
 
     /* Read NEC header
     * busy waits for the NEC header and returns 1 if detected, 0 if not. 
@@ -172,41 +171,32 @@ namespace leaguepulse {
     int readNecHeader(MicroBitPin *p) {
         if (!p) return -1;
 
+        int d = 0;
+
         MicroBitPin *dp = getPin(MICROBIT_ID_IO_P3); // Debug pin
 
         dp->setDigitalValue(0);
         // Wait for the start bit
-        if (!waitForPinState(p, 1, 1000000)){
+        if (! (d = waitForPinState(p, 1, 1000000))){
             return -2;
         }
 
-        // Measure the duration of the start bit
-        int startTime = system_timer_current_time_us();
-        if(!waitForPinState(p, 0, 9500)) return -3; // timeout
+        if(!( d = waitForPinState(p, 0, 9500))) return -3; // timeout
 
-        int duration = system_timer_current_time_us() - startTime;
-        
-        // Check if the duration is within the expected range
-        if( duration > 9500){
-            return -4;
-        }
-        if (duration < 8700) {
+        if (d < 8700) {
             return -5;
         }
 
         dp->setDigitalValue(1);
+
         // Wait for the space after the start bit
-        startTime = system_timer_current_time_us();
-        if(!waitForPinState(p, 1, 4700)){
+        if(!(d = waitForPinState(p, 1, 4700))){
             return -6;
         }
         dp->setDigitalValue(0);
 
-        duration = system_timer_current_time_us() - startTime;
 
-        // Check if the duration is within the expected range
-        if (duration < 4300 || duration > 4700) {
-            
+        if (d < 4300 ) {
             return -7;
         }
 
@@ -215,194 +205,32 @@ namespace leaguepulse {
         return 0;
     }
 
-    /* Read a bit 
-     * A bit will be HIGH for BIT_MARK us, then LOW for
-     * either ZERO_SPACE or ONE_SPACE us
-     */
-    int readBit(MicroBitPin *p) {
-        if (!p) return -11;
-
-        #define ONE_BIT 2250     // total length of a 1 bit
-        #define ZERO_BIT 1120    // total length of a 0 bit
-        #define BIT_MARK 560     // 560us mark for all bits
-
-        #define BIT_MARK_MAX (BIT_MARK + 50)
-        #define BIT_MARK_MIN (BIT_MARK - 50)
-
-        #define ZERO_SPACE (ZERO_BIT - BIT_MARK)    // 560us space for '0'
-        #define ZERO_SPACE_MAX (ZERO_SPACE + 50)    // 760us max for '0'
-        #define ZERO_SPACE_MIN (ZERO_SPACE - 50)    // 460us min for '0'
-
-        #define ONE_SPACE (ONE_BIT - BIT_MARK)      // 1.69ms space for '1'
-        #define ONE_SPACE_MAX (ONE_SPACE + 50)      // 1.89ms max for '1'
-        #define ONE_SPACE_MIN (ONE_SPACE - 50)      // 1.64ms min for '1'
-        #define STOP_BIT 560                        // Final 560us mark
-
-
-        MicroBitPin *dp = getPin(MICROBIT_ID_IO_P2); // Debug pin
-        dp->setDigitalValue(0); 
-        // Wait for the mark
-        
-        if (!waitForPinState(p, 1, 10))
-            return -12;
-
-        dp->setDigitalValue(1);
-
-        // Measure the duration of the mark
-        int startTime = system_timer_current_time_us();
-        if (!waitForPinState(p, 0, BIT_MARK_MAX)){
-            
-            return -13;
-        }
-        int duration = system_timer_current_time_us() - startTime;
-
-        dp->setDigitalValue(0);
-
-        if (duration < BIT_MARK_MIN || duration > BIT_MARK_MAX) {
-            return -14; // Invalid mark duration
-        }
-
-        startTime = system_timer_current_time_us();
-        if (!waitForPinState(p, 1, ONE_SPACE_MAX)){
-            return -15;
-        }
-        duration = system_timer_current_time_us() - startTime;
-
-        dp->setDigitalValue(1);
-
-        if (duration < ZERO_SPACE_MIN ) {
-            return -16; // Invalid space duration for '0'
-        }
-
-        if (duration < ZERO_SPACE_MAX) {
-            return 0; // '0' bit
-        } else if (duration > ONE_SPACE_MIN) {
-            return 1; // '1' bit
-        } else {
-            return -17; // Invalid space duration for '1'
-        }
-
-    }
-
-    /*
-    * Receive a command with timeout
-    * @param pin the digital pin to receive command from
-    * @param timeout timeout in milliseconds
-    * @returns received 32-bit command value
-    */
-    //%
-    uint32_t recvCommand(int pin, uint16_t timeout) {
-
-        MicroBitPin *p = getPin(pin);
-
-        MicroBitPin *dp1 = getPin(MICROBIT_ID_IO_P2); // Debug pin
-        dp1->setDigitalValue(0);
-
-        MicroBitPin *dp2 = getPin(MICROBIT_ID_IO_P3); // Debug pin
-        dp2->setDigitalValue(0);
-
-        int result = readNecHeader(p);
-        dp2->setDigitalValue(0);
-
-        if (result != 0) {
-            return result; // Error code from readNecHeader
-        }
-
-        uint32_t command = 0;
-
-        for (int i = 0; i < 32; i++) {
-            int bit = readBit(p);
-            if (bit < 0) {
-                dp1->setDigitalValue(0);
-                return bit; // Error code from readBit
-            }
-            command = (command << 1) | bit;
-        }
-
-        dp1->setDigitalValue(0);
-        dp2->setDigitalValue(0);
-        return command;
-    }
-
-
-    struct PulseResult {
-        int highDuration;
-        int lowDuration;
-        bool success;
-    };
-
-    PulseResult pulseTimer(MicroBitPin *p, uint16_t timeout, 
-        uint16_t highMax, uint16_t lowMax) {
-        if (!p) {
-            PulseResult result;
-            result.success = false;
-            return result;
-        }
-        // Wait for pin to go high
-
-        // Wait for pin to go low
-        // Measure duration of low pulse
-        // Return 1 if within range, 0 if not
-
-        PulseResult result;
-        result.success = false;
-
-        // Wait for pin to go high
-        if (!waitForPinState(p, 1, timeout)) {
-            return result;
-        }
-
-        int startTime = system_timer_current_time_us();
-        if (!waitForPinState(p, 0, highMax)) {
-            return result;
-        }
-
-        result.highDuration = system_timer_current_time_us() - startTime;
-
-        startTime = system_timer_current_time_us();
-        if (!waitForPinState(p, 1, lowMax)) {
-            return result;
-        }
-
-        result.lowDuration = system_timer_current_time_us() - startTime;
-
-        result.success = true;
-        return result;
-
-    }
-
+    
+  
     /*
     * Time one pulse*/
     //%
     int timePulse(int pin, int state, uint16_t timeout){
-        // Return the duration of the high pulse in microseconds
-        MicroBitPin *p = getPin(pin);
-        if (!p) return -1;
         
+        MicroBitPin *p = getPin(pin);
+        int d; 
+
+        if (!p) return -1;
+
         // Wait for pin to go high
         if (!waitForPinState(p, state, timeout)) {
             return -2;
         }
 
-        int startTime = system_timer_current_time_us();
-        if (!waitForPinState(p, !state, timeout)) {
+       
+        if (!( d = waitForPinState(p, !state, timeout))) {
             return -3;
         }
 
-        return system_timer_current_time_us() - startTime;
+        return d;
     }
 
 
-    //%
-    int pulseSpaceTime(int pin, uint16_t timeout, uint16_t highMax, uint16_t lowMax){
-            // Return the duration of the low pulse in microseconds
-            MicroBitPin *p = getPin(pin);
-            if (!p) return -1;
-            PulseResult result = pulseTimer(p, timeout, highMax, lowMax);
-            if (!result.success) return -2;
-            return result.lowDuration;
-            
-    }
 
 
 }

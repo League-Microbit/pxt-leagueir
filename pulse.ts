@@ -31,6 +31,27 @@ namespace leaguepulse {
     const STOP_BIT = 560;                      // Final 560us mark
 
 
+        // Constants for pin states
+    export const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
+    export const IR_LOW = 1;  // IR LED is considered "low" when the digital pin reads 1
+
+
+
+    export function readACGHeader(pin: DigitalPin): boolean {
+
+        let pulseTime = 0;
+
+        pulseTime = leaguepulse.timePulse(pin, 1, AGC_MARK_MAX);
+        if (pulseTime > 0 && pulseTime > AGC_MARK_MIN) {
+            pulseTime = leaguepulse.timePulse(pin, 0, AGC_SPACE_MAX);
+            if (pulseTime > 0 && pulseTime > AGC_SPACE_MIN) {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
     /**
      * Reads a pulse signal from a digital pin and decodes it into a numeric value.
      * 
@@ -56,10 +77,8 @@ namespace leaguepulse {
         // Reset the value of n for a new reading
         n = 0;
 
-        // Wait for pin to go LOW (0) before starting to read pulses
-      
-        while (pins.digitalReadPin(pin) === 0) { // pin is inverted
-        }
+
+        while (pins.digitalReadPin(pin) != IR_LOW) ; // Clear the line, wait for LOW
 
         while (true) {
             d = leaguepulse.timePulse(pin, 1, AGC_MARK_MAX); // header HIGH
@@ -93,7 +112,7 @@ namespace leaguepulse {
         d = leaguepulse.timePulse(pin, 1, STOP_BIT + 200); // final HIGH
 
         return n;
-        
+
 
     }
 
