@@ -14,7 +14,7 @@ function toHex(num: number): string {
     let hexStr = "";
     let temp = num;
     if (temp === 0) {
-        hexStr = "0";
+        hexStr = "00000000";
     } else {
         while (temp > 0) {
             let digit = temp % 16;
@@ -24,6 +24,10 @@ function toHex(num: number): string {
                 hexStr = String.fromCharCode(55 + digit) + hexStr; // A-F
             }
             temp = Math.floor(temp / 16);
+        }
+        // Pad with leading zeros to make it 8 digits (32 bits)
+        while (hexStr.length < 8) {
+            hexStr = "0" + hexStr;
         }
     }
     return hexStr;
