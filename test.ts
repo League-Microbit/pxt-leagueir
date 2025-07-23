@@ -3,8 +3,31 @@
  * This program demonstrates the pulse generation functionality
  */
 
+
+
+
 let n: number = Math.floor(Math.random() * 10)
 basic.showNumber(n)
+
+
+function toHex(num: number): string {
+    let hexStr = "";
+    let temp = num;
+    if (temp === 0) {
+        hexStr = "0";
+    } else {
+        while (temp > 0) {
+            let digit = temp % 16;
+            if (digit < 10) {
+                hexStr = digit + hexStr;
+            } else {
+                hexStr = String.fromCharCode(55 + digit) + hexStr; // A-F
+            }
+            temp = Math.floor(temp / 16);
+        }
+    }
+    return hexStr;
+}
 
 const AGC_MARK = 9000; // AGC MARK = 9ms
 const AGC_MARK_MAX = AGC_MARK + 500;
@@ -18,15 +41,15 @@ const ZERO_BIT = 1120;    // total length of a 0 bit
 const BIT_MARK = 560;     // 560us mark for all bits
 
 const BIT_MARK_MAX = BIT_MARK + 75;
-const BIT_MARK_MIN = BIT_MARK - 75;
+const BIT_MARK_MIN = BIT_MARK - 120;
 
 const ZERO_SPACE = ZERO_BIT - BIT_MARK;    // 560us space for '0'
 const ZERO_SPACE_MAX = ZERO_SPACE + 150;    // 760us max for '0'
-const ZERO_SPACE_MIN = ZERO_SPACE - 150;    // 460us min for '0'
+const ZERO_SPACE_MIN = ZERO_SPACE - 170;    // 460us min for '0'
 
 const ONE_SPACE = ONE_BIT - BIT_MARK;      // 1.69ms space for '1'
 const ONE_SPACE_MAX = ONE_SPACE + 150;      // 1.89ms max for '1'
-const ONE_SPACE_MIN = ONE_SPACE - 150;      // 1.64ms min for '1'
+const ONE_SPACE_MIN = ONE_SPACE - 170;      // 1.64ms min for '1'
 const STOP_BIT = 560;                      // Final 560us mark
 
 
@@ -106,45 +129,31 @@ function readNecBit(pin: DigitalPin): number {
 
     let pulseTime = 0;
 
-    pulseTime = leaguepulse.timePulse(pin, 1, BIT_MARK_MAX);
-    if (pulseTime > 0 && pulseTime > BIT_MARK_MIN) {
+    pulseTime = leaguepulse.timePulse(pin, 1, BIT_MARK_MAX + 200);
+
+    if (pulseTime < 0) return pulseTime - 10 // timedout at BIT_MARK_MAX
+
+    if (pulseTime > BIT_MARK_MIN) {
+
         pulseTime = leaguepulse.timePulse(pin, 0, ONE_SPACE_MAX);
-        if (pulseTime < 0) return pulseTime
+
+        if (pulseTime < 0) return pulseTime - 20 // timedout at ONE_SPACE_MAX
+
         if (pulseTime > ONE_SPACE_MIN && pulseTime < ONE_SPACE_MAX) {
             return 1;
         } else if (pulseTime > ZERO_SPACE_MIN && pulseTime < ZERO_SPACE_MAX) {
             return 0;
         } else {
-            return -10; // Error
+            return - 10; // Error Bit space wasn't either 0 or 1
         }
 
-    }
-    
-    if (pulseTime < 0) {
-        return pulseTime;
     } else {
-        return -pulseTime; // signals a pulseTIme size error
+        return -pulseTime;
     }
+
 }
 
-function toHex(num: number): string {
-    let hexStr = "";
-    let temp = num;
-    if (temp === 0) {
-        hexStr = "0";
-    } else {
-        while (temp > 0) {
-            let digit = temp % 16;
-            if (digit < 10) {
-                hexStr = digit + hexStr;
-            } else {
-                hexStr = String.fromCharCode(55 + digit) + hexStr; // A-F
-            }
-            temp = Math.floor(temp / 16);
-        }
-    }
-    return hexStr;
-}
+
 
 function testTimePulse() {
     serial.setBaudRate(BaudRate.BaudRate115200);
@@ -193,7 +202,10 @@ function testTimePulse() {
             }
         }
 
-        serial.writeLine("Received: 0x" + toHex(n) + " " + b);
+        // Clear the top bit of n
+        n &= 0x7FFFFFFF;
+
+        serial.writeLine("Received: "+ n + " 0x" + toHex(n) + " " + b);
         
         pins.digitalWritePin(debug_pin, 0);  
     }

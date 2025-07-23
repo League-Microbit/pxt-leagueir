@@ -222,7 +222,6 @@ namespace leaguepulse {
             return -2;
         }
 
-       
         if (!( d = waitForPinState(p, !state, timeout))) {
             return -3;
         }
