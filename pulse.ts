@@ -202,8 +202,8 @@ namespace leaguepulse {
                     command = 0;
                 } else {
                     // Split 32-bit result into high 16 bits (address) and low 16 bits (command)
-                    address = (result & 0xFFFF0000) >> 16;
-                    command = (result & 0x0000FFFF);
+                    address = (result >> 16) & 0xFFFF;
+                    command = (result & 0xFFFF);
                 }
                 
                 handler(address, command);
@@ -217,20 +217,25 @@ namespace leaguepulse {
     /**
      * Send an NEC format IR command on a digital pin
      * @param pin the digital pin to send command on
-     * @param command the 32-bit NEC command to send
+     * @param address the 16-bit address to send
+     * @param command the 16-bit command to send
      * @param carrierFreqKHz the carrier frequency in kHz (typically 38kHz for IR)
      */
     //% blockId="leaguepulse_send_command" 
-    //% block="send NEC command %command on pin %pin with %carrierFreqKHz kHz carrier"
+    //% block="send NEC address %address command %command on pin %pin with %carrierFreqKHz kHz carrier"
     //% weight=70
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% command.min=0 command.max=4294967295 command.defl=0xFF00FF00
+    //% address.min=0 address.max=65535 address.defl=0xFF00
+    //% command.min=0 command.max=65535 command.defl=0xFF00
     //% carrierFreqKHz.min=30 carrierFreqKHz.max=50 carrierFreqKHz.defl=38
     //% group="IR Commands"
-    export function sendCommand(pin: DigitalPin, command: number): void {
-        sendCommandCpp(pin as number, command)
+    export function sendCommand(pin: DigitalPin, address: number, command: number): void {
+        // Combine address (upper 16 bits) and command (lower 16 bits) into 32-bit value
+        let combined = ((address & 0xFFFF) << 16) | (command & 0xFFFF);
+        sendCommandCpp(pin as number, combined)
     }
+
 
     /**
      * Function used for simulator, actual implementation is in pulse.cpp

@@ -22,13 +22,9 @@ function testSendCommand() {
         n = (n + 1) % 256;
         
         // Construct 32-bit message from 4 copies of the byte
-        let message = 
-            (byteValue << 24) | 
-            (byteValue << 16) | 
-            (byteValue << 8) | 
-            byteValue;
-        
-        leaguepulse.sendCommand(DigitalPin.P0, message);
+        let val =(byteValue << 8) | byteValue;
+
+        leaguepulse.sendCommand(DigitalPin.P0, val, val );
         basic.showNumber(n%10);
         basic.pause(100)
         
