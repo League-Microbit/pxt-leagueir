@@ -22,12 +22,10 @@ using namespace pxt;
 
 namespace leaguepulse {
 
-    int counter = 0;
-
 
     //%
     void pulse(int pin, int16_t delay, int32_t count) {
-
+        // Test how fast we can toggle a pin
         MicroBitPin *p = getPin(pin);
         if (!p) return;
         
@@ -36,21 +34,19 @@ namespace leaguepulse {
             // Set pin high
             p->setDigitalValue(1);
             // Wait for delay microseconds
-            sleep_us(delay);
-            
+            if(delay) {
+                sleep_us(delay);
+            }
+
             // Set pin low
             p->setDigitalValue(0);
             // Wait for delay microseconds
-            sleep_us(delay);
+
+            if(delay){
+                sleep_us(delay);
+            }
         }
     }
-
-    //%
-    int incCount() {
-        counter++;
-        return counter;
-    }
-
 
 
     /*
@@ -124,8 +120,6 @@ namespace leaguepulse {
      
         sendIrBit(p, AGC_BURST, AGC_SPACE);
 
-
-
         // Send 32 data bits (MSB first)
         for (int i = 31; i >= 0; i--) {
             if (command & (1UL << i)) {
@@ -147,7 +141,9 @@ namespace leaguepulse {
 
     }
 
-
+    /*
+    * Read a pin, inverting the result, because the IR module inverts the signal
+    */
     inline int readPin(MicroBitPin *p) {
         if (!p) return 0;
 
@@ -155,17 +151,14 @@ namespace leaguepulse {
         return p->getDigitalValue() ? 0 : 1;
     }
 
-    inline int currentTimeMicros() {
-        return system_timer_current_time_us();
-    }
 
 
     inline int waitForPinState(MicroBitPin *p, int state, int timeout) {
         if (!p) return 0;
 
-        int startTime = currentTimeMicros();
+        int startTime = system_timer_current_time_us();
         while (readPin(p) != state) {
-            if (currentTimeMicros() - startTime > timeout ) return 0; // timeout
+            if (system_timer_current_time_us() - startTime > timeout ) return 0; // timeout
         }
         return 1; // state detected
     }
@@ -191,7 +184,7 @@ namespace leaguepulse {
         int startTime = currentTimeMicros();
         if(!waitForPinState(p, 0, 9500)) return -3; // timeout
 
-        int duration = currentTimeMicros() - startTime;
+        int duration = system_timer_current_time_us() - startTime;
         
         // Check if the duration is within the expected range
         if( duration > 9500){
@@ -203,13 +196,13 @@ namespace leaguepulse {
 
         dp->setDigitalValue(1);
         // Wait for the space after the start bit
-        startTime = currentTimeMicros();
+        startTime = system_timer_current_time_us();
         if(!waitForPinState(p, 1, 4700)){
             return -6;
         }
         dp->setDigitalValue(0);
 
-        duration = currentTimeMicros() - startTime;
+        duration = system_timer_current_time_us() - startTime;
 
         // Check if the duration is within the expected range
         if (duration < 4300 || duration > 4700) {
@@ -359,19 +352,19 @@ namespace leaguepulse {
             return result;
         }
 
-        int startTime = currentTimeMicros();
+        int startTime = system_timer_current_time_us();
         if (!waitForPinState(p, 0, highMax)) {
             return result;
         }
 
-        result.highDuration = currentTimeMicros() - startTime;
+        result.highDuration = system_timer_current_time_us() - startTime;
 
         startTime = currentTimeMicros();
         if (!waitForPinState(p, 1, lowMax)) {
             return result;
         }
 
-        result.lowDuration = currentTimeMicros() - startTime;
+        result.lowDuration = system_timer_current_time_us() - startTime;
 
         result.success = true;
         return result;
@@ -391,12 +384,12 @@ namespace leaguepulse {
             return -2;
         }
 
-        int startTime = currentTimeMicros();
+        int startTime = system_timer_current_time_us();
         if (!waitForPinState(p, !state, timeout)) {
             return -3;
         }
 
-        return currentTimeMicros() - startTime;
+        return system_timer_current_time_us() - startTime;
     }
 
 

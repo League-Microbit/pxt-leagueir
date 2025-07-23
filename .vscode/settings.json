@@ -15,5 +15,8 @@
         "**/yotta_modules": true,
         "**/yotta_targets": true,
         "**/pxt_modules": true
+    },
+    "files.associations": {
+        "locale": "cpp"
     }
 }
