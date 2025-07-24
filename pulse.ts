@@ -2,7 +2,7 @@
  * Functions to operate the LeagueIR controller
  */
 
-//% block="League IR" icon="\uf0ce" color="#da4213ff"
+//%  icon="\uf0ce" color="#da4213ff"
 namespace leagueir {
 
     export let irError = "";
@@ -136,21 +136,16 @@ namespace leagueir {
     /**
     * Read an NEC format IR command on a digital pin
      */
-    //% blockId="leagueir_read_nec_code" 
-    //% block="read NEC IR code from pin $pin"  // Changed to lowercase for consistency
-    //% weight=55
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% group="IR Commands"
-    //% blockSetVariable="irCode"  // This helps with block usage
-    export function readNecCode(pin: DigitalPin): number {
-
+    //% block="read NEC IR code from pin $pin"
+    export function readNecCode(pin: number): number {
+        let digitalPin = pin as DigitalPin;
+        
         // Configure pins
-        pins.setPull(pin, PinPullMode.PullUp);  // Use pull-up resistor on the input pin
+        pins.setPull(digitalPin, PinPullMode.PullUp);  // Use pull-up resistor on the input pin
 
         while (true) {
 
-            if (!leagueir.readACGHeader(pin)) {
+            if (!leagueir.readACGHeader(digitalPin)) {
                 continue;
             }
 
@@ -159,7 +154,7 @@ namespace leagueir {
 
             for (let i = 0; i < 32; i++) {
            
-                b = leagueir.readNecBit(pin);
+                b = leagueir.readNecBit(digitalPin);
                 if (b < 0) {
                     return 0
                
@@ -190,13 +185,8 @@ namespace leagueir {
      * @param pin the digital pin to receive IR commands from
      * @param handler function to call when a command is received
      */
-    //% blockId="leagueir_on_nec_received" 
     //% block="on NEC received from pin $pin"
-    //% weight=54
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% group="IR Commands"
-    export function onNECReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
+    export function onNecReceived(pin: number, handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
             while (true) {
                 let result = readNecCode(pin);
@@ -228,18 +218,12 @@ namespace leagueir {
      * @param address the 16-bit address to send
      * @param command the 16-bit command to send
      */
-    //% blockId="leagueir_send_command"
-    //% block="send NEC address %address command %command on pin $pin"
-    //% weight=70
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% address.min=0 address.max=65535 address.defl=0xFF00
-    //% command.min=0 command.max=65535 command.defl=0xFF00
-    //% group="IR Commands"
-    export function sendCommand(pin: DigitalPin, address: number, command: number): void {
+    //% block="Send IR address $address command $command on pin $pin"
+    export function sendCommand(pin: number, address: number, command: number): void {
+        let digitalPin = pin as DigitalPin;
         // Combine address (upper 16 bits) and command (lower 16 bits) into 32-bit value
         let combined = ((address & 0xFFFF) << 16) | (command & 0xFFFF);
-        sendCommandCpp(pin as number, combined)
+        sendCommandCpp(pin, combined)
     }
 
 }
