@@ -20,7 +20,7 @@ namespace leagueir {
     /* 
     */
     //% shim=leagueir::timePulse
-    function timePulse(pin: number, state: int16, timeout: int16): number {
+    function timePulse(pin: number, state: number, timeout: number): number {
         // Simulator implementation would go here
         return 0;
     }
