@@ -7,7 +7,7 @@
     "homepage": "",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/ericbusboom/pxt-demo"
     },
     "dependencies": {
         "core": "*",
@@ -19,7 +19,7 @@
         "pulse.ts",
         "pulse.cpp",
         "shims.d.ts",
-        "enums.d.ts",
+        "enums.d.ts"
     ],
     "testFiles": [
         "test.ts"
