@@ -15,7 +15,8 @@
     },
     "files": [
         "README.md",
-        "pulse.ts",
+        "ir.ts",
+        "lib.ts",
         "pulse.cpp",
         "shims.d.ts",
         "enums.d.ts"

@@ -13,10 +13,10 @@ function testOnNECReceived() {
     leagueir.onNecReceived(DigitalPin.P1, function (address: number, command: number) {
         if (address ==  0 && command == 0) {
             // Error 
-            serial.writeLine("E: " + leagueir.irError);
+            serial.writeLine("E: " + leagueirlib.irError);
         } else {
             // Valid command received
-            serial.writeLine("A: " + address + ", " + leagueir.toHex(address) + " C: " + command + ", " + leagueir.toHex(command));
+            serial.writeLine("A: " + address + ", " + leagueirlib.toHex(address) + " C: " + command + ", " + leagueirlib.toHex(command));
 
         }
         basic.pause(100);
