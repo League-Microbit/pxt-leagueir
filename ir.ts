@@ -23,15 +23,6 @@ namespace leagueir {
 
     export let irError = "";
 
-    /* Function used for simulator, actual implementation is in pulse.cpp
-     * @param pin the digital pin number
-     * @param command the 32-bit command to send
-     */
-    //% shim=leagueir::sendCommand
-    export function sendCommandCpp(pin: number, command: number): void {
-        // Simulator implementation would go here
-    }
-
     /*
     */
     //% shim=leagueir::timePulse
@@ -205,8 +196,18 @@ namespace leagueir {
     }
 
 
-    export function sendCommand(pin: number, address: number, command: number): void {
-        let digitalPin = pin as DigitalPin;
+    /* Function used for simulator, actual implementation is in pulse.cpp
+     * @param pin the digital pin number
+     * @param command the 32-bit command to send
+     */
+    //% shim=leagueir::sendCommand
+    export function sendCommandCpp(pin: number, command: number): void {
+        // Simulator implementation would go here
+    }
+
+
+    export function sendCommand(pin: DigitalPin, address: number, command: number): void {
+        
         // Combine address (upper 16 bits) and command (lower 16 bits) into 32-bit value
         let combined = ((address & 0xFFFF) << 16) | (command & 0xFFFF);
         leagueir.sendCommandCpp(pin, combined);

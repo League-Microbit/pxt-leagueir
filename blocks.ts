@@ -12,14 +12,14 @@ namespace jtlinterface {
        
     }
 
-    //% block="On IR ccode received from pin $pin"
+    //% block="On IR code received from pin $pin"
     export function onNecReceived(pin: number, handler: (address: number, command: number) => void): void {
         leagueir.onNecReceived(pin, handler);
     }
 
 
     //% block="Send IR address $address command $command on pin $pin"
-    export function sendCommand(pin: number, address: number, command: number): void {
+    export function sendCommand(pin: DigitalPin, address: number, command: number): void {
         leagueir.sendCommand(pin, address, command);
     }
 
