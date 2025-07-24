@@ -11,6 +11,11 @@ function testOnNECReceived() {
     serial.writeLine("Starting NEC receiver test...");
     
 
+    jtlinterface.onNecReceived(DigitalPin.P0, function (address, command) {
+        basic.showIcon(IconNames.Heart)
+        serial.writeValue("x", command)
+    });
+
     jtlinterface.onNecReceived(DigitalPin.P1, function (address: number, command: number) {
         if (address ==  0 && command == 0) {
             // Error 
