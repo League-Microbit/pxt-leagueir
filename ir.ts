@@ -126,15 +126,14 @@ namespace leagueir {
     }
 
 
-    export function readNecCode(pin: number): number {
-        let digitalPin = pin as DigitalPin;
+    export function readNecCode(pin: DigitalPin): number {
 
         // Configure pins
-        pins.setPull(digitalPin, PinPullMode.PullUp); // Use pull-up resistor on the input pin
+        pins.setPull(pin, PinPullMode.PullUp); // Use pull-up resistor on the input pin
 
         while (true) {
 
-            if (!leagueir.readACGHeader(digitalPin)) {
+            if (!leagueir.readACGHeader(pin)) {
                 continue;
             }
 
@@ -143,7 +142,7 @@ namespace leagueir {
 
             for (let i = 0; i < 32; i++) {
 
-                b = leagueir.readNecBit(digitalPin);
+                b = leagueir.readNecBit(pin);
                 if (b < 0) {
                     return 0;
 
@@ -169,7 +168,7 @@ namespace leagueir {
 
         }
     }
-    export function onNecReceived(pin: number, handler: (address: number, command: number) => void): void {
+    export function onNecReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
             while (true) {
                 let result = readNecCode(pin);

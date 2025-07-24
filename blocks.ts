@@ -7,13 +7,13 @@
 namespace jtlinterface {
 
     //% block="Read NEC IR code from pin $pin"
-    export function readNecCode(pin: number): number {
+    export function readNecCode(pin: DigitalPin): number {
         return leagueir.readNecCode(pin);
        
     }
 
     //% block="On IR code received from pin $pin"
-    export function onNecReceived(pin: number, handler: (address: number, command: number) => void): void {
+    export function onNecReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
         leagueir.onNecReceived(pin, handler);
     }
 
