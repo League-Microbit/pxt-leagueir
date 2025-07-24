@@ -16,7 +16,7 @@
     "files": [
         "README.md",
         "ir.ts",
-        "lib.ts",
+        "blocks.ts",
         "pulse.cpp",
         "shims.d.ts",
         "enums.d.ts"
