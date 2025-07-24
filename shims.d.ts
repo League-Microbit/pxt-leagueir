@@ -2,18 +2,12 @@
 
 
     /**
-     * Andy England @ SparkFun Electronics
-     * September 6, 2018
-     * https://github.com/sparkfun/pxt-light-bit
+     * LeagueIR NEC IR CCode Transmitter
      *
-     * Development environment specifics:
-     * Written in Microsoft PXT
-     * Tested with a SparkFun temt6000 sensor and micro:bit
+     * Send and receive NEC format IR commands using an IR LED and IR receiver module.
      *
-     * This code is released under the [MIT License](http://opensource.org/licenses/MIT).
-     * Please review the LICENSE.md file included with this example. If you have any questions
-     * or concerns with licensing, please contact techsupport@sparkfun.com.
-     * Distributed as-is; no warranty is given.
+     * Uses PWM to generate a 38kHz carrier frequency for the IR LED.
+     * Uses timing loops to read the IR receiver output.
      */
 
 declare namespace leagueir {

@@ -7,6 +7,25 @@ namespace leagueir {
 
     export let irError = "";
 
+    /* Function used for simulator, actual implementation is in pulse.cpp
+     * @param pin the digital pin number
+     * @param command the 32-bit command to send
+     * @param carrierFreqKHz the carrier frequency in kHz
+     */
+    //% shim=leagueir::sendCommand
+    function sendCommandCpp(pin: number, command: number): void {
+        // Simulator implementation would go here
+    }
+
+    /* 
+    */
+    //% shim=leagueir::timePulse
+    function timePulse(pin: number, state: int16, timeout: int16): number {
+        // Simulator implementation would go here
+        return 0;
+    }
+
+
     export function toHex(num: number): string {
         // Convert to 32-bit unsigned integer
         num = num >>> 0;
@@ -53,14 +72,6 @@ namespace leagueir {
     const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
     const IR_LOW = 1;  // IR LED is considered "low" when the digital pin reads 1
 
-
-    /**
-     * 
-     */
-    //% shim=leagueir::timePulse
-    function timePulse(pin: number, state: number, timeout: number): number {
-        return 0
-    }
 
     /**
      * Read the AGC header from the IR signal
@@ -126,13 +137,11 @@ namespace leagueir {
     /**
     * Read an NEC format IR command on a digital pin
      */
-    //% blockId="leagueir_read_pulse" 
+    //% blockId="leagueir_read_nec_code" 
     //% block="Read NEC format IR code from pin %pin"
     //% weight=55
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% dp.fieldEditor="gridpicker" dp.fieldOptions.columns=4
-    //% dp.fieldOptions.tooltips="false" dp.fieldOptions.width="300"
     //% group="IR Commands"
     export function readNecCode(pin: DigitalPin): number {
 
@@ -179,11 +188,10 @@ namespace leagueir {
     /**
      * Start listening for NEC IR commands in the background
      * @param pin the digital pin to receive IR commands from
-     * @param dp debug pin for timing visualization
      * @param handler function to call when a command is received
      */
     //% blockId="leagueir_on_nec_received" 
-    //% block="on NEC received from pin %pin with debug pin %dp"
+    //% block="on NEC received from pin %pin"
     //% weight=54
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
@@ -219,10 +227,9 @@ namespace leagueir {
      * @param pin the digital pin to send command on
      * @param address the 16-bit address to send
      * @param command the 16-bit command to send
-     * @param carrierFreqKHz the carrier frequency in kHz (typically 38kHz for IR)
      */
-    //% blockId="leagueir_send_command" 
-    //% block="send NEC address %address command %command on pin %pin with %carrierFreqKHz kHz carrier"
+    //% blockId="leagueir_send_command"
+    //% block="send NEC address %address command %command on pin %pin"
     //% weight=70
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
@@ -234,18 +241,6 @@ namespace leagueir {
         // Combine address (upper 16 bits) and command (lower 16 bits) into 32-bit value
         let combined = ((address & 0xFFFF) << 16) | (command & 0xFFFF);
         sendCommandCpp(pin as number, combined)
-    }
-
-
-    /**
-     * Function used for simulator, actual implementation is in pulse.cpp
-     * @param pin the digital pin number
-     * @param command the 32-bit command to send
-     * @param carrierFreqKHz the carrier frequency in kHz
-     */
-    //% shim=leagueir::sendCommand
-    function sendCommandCpp(pin: number, command: number): void {
-        // Simulator implementation would go here
     }
 
 }

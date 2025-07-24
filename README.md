@@ -1,4 +1,5 @@
-# LeaguePulse Pin Pulser
+# LeagueIR NEC IR CCode Transmitter
+
 
 This is a demonstration PXT project that you can use as a template for
 building Micro:bit extensions. 

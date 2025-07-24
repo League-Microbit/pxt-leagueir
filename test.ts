@@ -5,35 +5,6 @@
 
 
 
-
-let n: number = Math.floor(Math.random() * 10)
-basic.showNumber(n)
-
-
-
-
-function testSendCommand() {
-
-    let n = 0;
-
-    while(true) { 
-
-        let byteValue = n % 256;
-        n = (n + 1) % 256;
-        
-        // Construct 32-bit message from 4 copies of the byte
-        let val =(byteValue << 8) | byteValue;
-
-        leagueir.sendCommand(DigitalPin.P0, val, val );
-        basic.showNumber(val);
-        basic.pause(500);
-        
-    }
-}
-
-
-
-
 function testOnNECReceived() {
     serial.setBaudRate(BaudRate.BaudRate115200);
 

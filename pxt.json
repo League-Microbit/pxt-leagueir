@@ -3,6 +3,12 @@
     "version": "0.0.1",
     "description": "LeagueIR Transmitter",
     "license": "MIT",
+    "author": "Eric Busboom <eric.busboom@jointheleague.org",
+    "homepage": "",
+    "repository": {
+        "type": "git",
+        "url": ""
+    },
     "dependencies": {
         "core": "*",
         "radio": "*",
