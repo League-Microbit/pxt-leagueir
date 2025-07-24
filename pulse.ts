@@ -138,11 +138,12 @@ namespace leagueir {
     * Read an NEC format IR command on a digital pin
      */
     //% blockId="leagueir_read_nec_code" 
-    //% block="Read NEC format IR code from pin %pin"
+    //% block="read NEC IR code from pin %pin"  // Changed to lowercase for consistency
     //% weight=55
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
     //% group="IR Commands"
+    //% blockSetVariable="irCode"  // This helps with block usage
     export function readNecCode(pin: DigitalPin): number {
 
         // Configure pins
@@ -235,7 +236,6 @@ namespace leagueir {
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
     //% address.min=0 address.max=65535 address.defl=0xFF00
     //% command.min=0 command.max=65535 command.defl=0xFF00
-    //% carrierFreqKHz.min=30 carrierFreqKHz.max=50 carrierFreqKHz.defl=38
     //% group="IR Commands"
     export function sendCommand(pin: DigitalPin, address: number, command: number): void {
         // Combine address (upper 16 bits) and command (lower 16 bits) into 32-bit value
