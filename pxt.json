@@ -3,16 +3,15 @@
     "version": "0.20250723.1",
     "description": "LeagueIR Transmitter",
     "license": "MIT",
-    "author": "Eric Busboom <eric.busboom@jointheleague.org",
+    "author": "Eric Busboom <eric.busboom@jointheleague.org>",
     "homepage": "",
     "repository": {
         "type": "git",
         "url": "https://github.com/ericbusboom/pxt-demo"
     },
     "dependencies": {
-        "core": "*",
-        "radio": "*",
-        "microphone": "*"
+        "core": "*"
+
     },
     "files": [
         "README.md",

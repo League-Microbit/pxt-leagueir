@@ -2,9 +2,7 @@
  * Functions to operate the LeagueIR controller
  */
 
-//% block="League IR"
-//% icon="\uf0ce"
-//% color="#da4213ff"
+//% block="League IR" icon="\uf0ce" color="#da4213ff"
 namespace leagueir {
 
     export let irError = "";
@@ -12,7 +10,6 @@ namespace leagueir {
     /* Function used for simulator, actual implementation is in pulse.cpp
      * @param pin the digital pin number
      * @param command the 32-bit command to send
-     * @param carrierFreqKHz the carrier frequency in kHz
      */
     //% shim=leagueir::sendCommand
     function sendCommandCpp(pin: number, command: number): void {
@@ -140,7 +137,7 @@ namespace leagueir {
     * Read an NEC format IR command on a digital pin
      */
     //% blockId="leagueir_read_nec_code" 
-    //% block="read NEC IR code from pin %pin"  // Changed to lowercase for consistency
+    //% block="read NEC IR code from pin $pin"  // Changed to lowercase for consistency
     //% weight=55
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
@@ -194,7 +191,7 @@ namespace leagueir {
      * @param handler function to call when a command is received
      */
     //% blockId="leagueir_on_nec_received" 
-    //% block="on NEC received from pin %pin"
+    //% block="on NEC received from pin $pin"
     //% weight=54
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
@@ -232,7 +229,7 @@ namespace leagueir {
      * @param command the 16-bit command to send
      */
     //% blockId="leagueir_send_command"
-    //% block="send NEC address %address command %command on pin %pin"
+    //% block="send NEC address %address command %command on pin $pin"
     //% weight=70
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
     //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
