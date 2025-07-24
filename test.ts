@@ -10,7 +10,7 @@ function testOnNECReceived() {
 
     serial.writeLine("Starting NEC receiver test...");
     
-    leagueir.onNECReceived(DigitalPin.P1, function (address: number, command: number) {
+    leagueir.onNecReceived(DigitalPin.P1, function (address: number, command: number) {
         if (address ==  0 && command == 0) {
             // Error 
             serial.writeLine("E: " + leagueir.irError);
