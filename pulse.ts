@@ -2,7 +2,9 @@
  * Functions to operate the LeagueIR controller
  */
 
-//% color=#f44242 icon="\uf185"
+//% block="League IR"
+//% icon="\uf0ce"
+//% color="#378273"
 namespace leagueir {
 
     export let irError = "";
