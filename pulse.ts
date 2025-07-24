@@ -4,7 +4,7 @@
 
 //% block="League IR"
 //% icon="\uf0ce"
-//% color="#378273"
+//% color="#da4213ff"
 namespace leagueir {
 
     export let irError = "";
