@@ -16,7 +16,7 @@
      * Distributed as-is; no warranty is given.
      */
 
-declare namespace leaguepulse {
+declare namespace leagueir {
 }
 
 // Auto-generated. Do not edit. Really.

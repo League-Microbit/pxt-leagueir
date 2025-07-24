@@ -1,5 +1,5 @@
 // Auto-generated. Do not edit.
-declare namespace leaguepulse {
+declare namespace leagueir {
 }
 
 // Auto-generated. Do not edit. Really.

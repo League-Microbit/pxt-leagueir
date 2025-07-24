@@ -1,5 +1,5 @@
 /**
- * Test program for LeaguePulse extension
+ * Test program for LeagueIR extension
  * This program demonstrates the pulse generation functionality
  */
 
@@ -24,9 +24,9 @@ function testSendCommand() {
         // Construct 32-bit message from 4 copies of the byte
         let val =(byteValue << 8) | byteValue;
 
-        leaguepulse.sendCommand(DigitalPin.P0, val, val );
-        basic.showNumber(n%10);
-        basic.pause(100)
+        leagueir.sendCommand(DigitalPin.P0, val, val );
+        basic.showNumber(val);
+        basic.pause(500);
         
     }
 }
@@ -39,13 +39,13 @@ function testOnNECReceived() {
 
     serial.writeLine("Starting NEC receiver test...");
     
-    leaguepulse.onNECReceived(DigitalPin.P1, function (address: number, command: number) {
+    leagueir.onNECReceived(DigitalPin.P1, function (address: number, command: number) {
         if (address ==  0 && command == 0) {
             // Error 
-            serial.writeLine("E: " + leaguepulse.irError);
+            serial.writeLine("E: " + leagueir.irError);
         } else {
             // Valid command received
-            serial.writeLine("A: " + address + ", " + leaguepulse.toHex(address) + " C: " + command + ", " + leaguepulse.toHex(command));
+            serial.writeLine("A: " + address + ", " + leagueir.toHex(address) + " C: " + command + ", " + leagueir.toHex(command));
 
         }
         basic.pause(100);

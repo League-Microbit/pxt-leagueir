@@ -1,9 +1,9 @@
 /**
- * Functions to operate the LeaguePulse controller
+ * Functions to operate the LeagueIR controller
  */
 
 //% color=#f44242 icon="\uf185"
-namespace leaguepulse {
+namespace leagueir {
 
     export let irError = "";
 
@@ -57,7 +57,7 @@ namespace leaguepulse {
     /**
      * 
      */
-    //% shim=leaguepulse::timePulse
+    //% shim=leagueir::timePulse
     function timePulse(pin: number, state: number, timeout: number): number {
         return 0
     }
@@ -126,7 +126,7 @@ namespace leaguepulse {
     /**
     * Read an NEC format IR command on a digital pin
      */
-    //% blockId="leaguepulse_read_pulse" 
+    //% blockId="leagueir_read_pulse" 
     //% block="Read NEC format IR code from pin %pin"
     //% weight=55
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
@@ -141,7 +141,7 @@ namespace leaguepulse {
 
         while (true) {
 
-            if (!leaguepulse.readACGHeader(pin)) {
+            if (!leagueir.readACGHeader(pin)) {
                 continue;
             }
 
@@ -150,7 +150,7 @@ namespace leaguepulse {
 
             for (let i = 0; i < 32; i++) {
            
-                b = leaguepulse.readNecBit(pin);
+                b = leagueir.readNecBit(pin);
                 if (b < 0) {
                     return 0
                
@@ -182,7 +182,7 @@ namespace leaguepulse {
      * @param dp debug pin for timing visualization
      * @param handler function to call when a command is received
      */
-    //% blockId="leaguepulse_on_nec_received" 
+    //% blockId="leagueir_on_nec_received" 
     //% block="on NEC received from pin %pin with debug pin %dp"
     //% weight=54
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
@@ -221,7 +221,7 @@ namespace leaguepulse {
      * @param command the 16-bit command to send
      * @param carrierFreqKHz the carrier frequency in kHz (typically 38kHz for IR)
      */
-    //% blockId="leaguepulse_send_command" 
+    //% blockId="leagueir_send_command" 
     //% block="send NEC address %address command %command on pin %pin with %carrierFreqKHz kHz carrier"
     //% weight=70
     //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
@@ -243,7 +243,7 @@ namespace leaguepulse {
      * @param command the 32-bit command to send
      * @param carrierFreqKHz the carrier frequency in kHz
      */
-    //% shim=leaguepulse::sendCommand
+    //% shim=leagueir::sendCommand
     function sendCommandCpp(pin: number, command: number): void {
         // Simulator implementation would go here
     }

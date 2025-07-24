@@ -1,7 +1,7 @@
 {
-    "name": "leaguepulse",
+    "name": "LeagueIR",
     "version": "0.0.1",
-    "description": "LeaguePulse Light Sensor",
+    "description": "LeagueIR Transmitter",
     "license": "MIT",
     "dependencies": {
         "core": "*",
