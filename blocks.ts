@@ -12,7 +12,7 @@ namespace jtlinterface {
        
     }
 
-    //% block="on NEC received from pin $pin"
+    //% block="On IR ccode received from pin $pin"
     export function onNecReceived(pin: number, handler: (address: number, command: number) => void): void {
         leagueir.onNecReceived(pin, handler);
     }
