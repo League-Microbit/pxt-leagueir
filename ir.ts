@@ -8,7 +8,7 @@ class CRC8 {
    * @param polynomial Polynomial for CRC (e.g., 0x07 for CRC-8-CCITT)
    */
   private static generateCRCTable(polynomial: number): number[] {
-    const table = new Array(256);
+    const table: number[] = [];
     for (let i = 0; i < 256; i++) {
       let curr = i;
       for (let j = 0; j < 8; j++) {
@@ -25,10 +25,10 @@ class CRC8 {
 
   /**
    * Computes CRC-8 over the input data
-   * @param data Input data as Uint8Array or number array
+   * @param data Input data as number array
    * @param initial Initial CRC value (default 0x00)
    */
-  static compute(data: Uint8Array | number[], initial = 0x00): number {
+  static compute(data: number[], initial = 0x00): number {
     let crc = initial;
     for (let i = 0; i < data.length; i++) {
       crc = CRC8.table[(crc ^ data[i]) & 0xFF];
@@ -333,5 +333,5 @@ namespace leagueir {
     }
 
 
-    
+
 }
