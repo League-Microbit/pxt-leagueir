@@ -33,7 +33,7 @@ namespace leagueir
         sleep_us(highTime);
 
         // Turn off carrier
-        p->setAnalogValue(1);
+        p->setAnalogValue(0);
         sleep_us(lowTime);
     }
 
@@ -65,17 +65,14 @@ namespace leagueir
 
         const int16_t STOP_BIT = 560; // Final 560us mark
 
-        MicroBitPin *dp = getPin(MICROBIT_ID_IO_P1); // Debug pin
-        dp->setDigitalValue(1);                      // Debug pin high
-
         MicroBitPin *p = getPin(pin);
         // Set up 38kHz carrier (period = 26us)
         p->setAnalogPeriodUs(26);
 
+
         if (!p)
         {
             sleep_us(2000);
-            dp->setDigitalValue(0); // Debug pin low
             return;
         }
 
@@ -95,9 +92,6 @@ namespace leagueir
                 sendIrBit(p, BIT_MARK, ZERO_SPACE); // '0' bit
             }
         }
-
-        dp->setDigitalValue(0); // Debug pin low
-        // return;
 
         // Send final stop bit
         sendIrBit(p, STOP_BIT, 10000);
@@ -153,6 +147,15 @@ namespace leagueir
         }
 
         return d;
+    }
+
+    /* Scramble the input using MurmurHash3. This can sccrmable the bits of the 
+    * id of the Micro:bit, so we can use the last 12 for an id value. */
+    inline uint32_t murmur_32_scramble(uint32_t k) {
+        k *= 0xcc9e2d51;
+        k = (k << 15) | (k >> 17);  // rotate left 15
+        k *= 0x1b873593;
+        return k;
     }
 
 }

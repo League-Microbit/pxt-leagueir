@@ -39,28 +39,30 @@ class CRC8 {
 
 namespace leagueir {
 
-    const AGC_MARK = 9000; // AGC MARK = 9ms
-    const AGC_MARK_MAX = AGC_MARK + 500;
-    const AGC_MARK_MIN = AGC_MARK - 500;
-    const AGC_SPACE = 4500; // AGC SPACE = 4.5ms
-    const AGC_SPACE_MAX = AGC_SPACE + 500;
-    const AGC_SPACE_MIN = AGC_SPACE - 500;
+const AGC_MARK = 9000;                 // AGC MARK = 9000µs (9ms)
+const AGC_MARK_MAX = AGC_MARK + 500;  // AGC MARK MAX = 9500µs
+const AGC_MARK_MIN = AGC_MARK - 500;  // AGC MARK MIN = 8500µs
 
-    const ONE_BIT = 2250; // total length of a 1 bit
-    const ZERO_BIT = 1120; // total length of a 0 bit
-    const BIT_MARK = 560; // 560us mark for all bits
+const AGC_SPACE = 4500;               // AGC SPACE = 4500µs (4.5ms)
+const AGC_SPACE_MAX = AGC_SPACE + 500; // AGC SPACE MAX = 5000µs
+const AGC_SPACE_MIN = AGC_SPACE - 500; // AGC SPACE MIN = 4000µs
 
-    const BIT_MARK_MAX = BIT_MARK + 75;
-    const BIT_MARK_MIN = BIT_MARK - 120;
+const ONE_BIT = 2250;                 // ONE BIT total = 2250µs
+const ZERO_BIT = 1120;                // ZERO BIT total = 1120µs
+const BIT_MARK = 560;                 // BIT MARK = 560µs
 
-    const ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
-    const ZERO_SPACE_MAX = ZERO_SPACE + 150; // 760us max for '0'
-    const ZERO_SPACE_MIN = ZERO_SPACE - 170; // 460us min for '0'
+const BIT_MARK_MAX = BIT_MARK + 75;   // BIT MARK MAX = 635µs
+const BIT_MARK_MIN = BIT_MARK - 120;  // BIT MARK MIN = 440µs
 
-    const ONE_SPACE = ONE_BIT - BIT_MARK; // 1.69ms space for '1'
-    const ONE_SPACE_MAX = ONE_SPACE + 150; // 1.89ms max for '1'
-    const ONE_SPACE_MIN = ONE_SPACE - 170; // 1.64ms min for '1'
-    const STOP_BIT = 560; // Final 560us mark
+const ZERO_SPACE = ZERO_BIT - BIT_MARK;       // ZERO SPACE = 560µs
+const ZERO_SPACE_MAX = ZERO_SPACE + 150;      // ZERO SPACE MAX = 710µs
+const ZERO_SPACE_MIN = ZERO_SPACE - 170;      // ZERO SPACE MIN = 390µs
+
+const ONE_SPACE = ONE_BIT - BIT_MARK;         // ONE SPACE = 1690µs
+const ONE_SPACE_MAX = ONE_SPACE + 150;        // ONE SPACE MAX = 1840µs
+const ONE_SPACE_MIN = ONE_SPACE - 200;        // ONE SPACE MIN = 1490µs
+
+const STOP_BIT = 560;                 // STOP BIT = 560µs
 
     // Constants for pin states
     const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
@@ -246,12 +248,12 @@ namespace leagueir {
                     let crc8 = result & 0xFF;             // Bits 7-0: crc8 (8 bits)
 
                     // Verify CRC
-                    let data24bit = (id << 12) | (status << 8) | (command << 4) | value;
-                    let expectedCrc = calculateCRC8(data24bit);
-                    
+                    let expectedCrc = calculateCRC8(result & 0xFFFFFF00);
+
                     // Call handler with extracted values (including received CRC for verification)
                     if (crc8 !== expectedCrc) {
-                        irError = "CRC mismatch: expected " + expectedCrc + ", got " + crc8;
+                        irError = "CRC mismatch: from " + leagueir.toHex(result) + ", expected " + leagueir.toHex(expectedCrc) + ", got " + leagueir.toHex(crc8);
+                        serial.writeLine("E: " + irError);
                         continue; // Skip this packet if CRC does not match
                     }
                     handler(id, status, command, value);
@@ -288,14 +290,16 @@ namespace leagueir {
      */
     function calculateCRC8(data: number): number {
         // Convert 24-bit number to byte array (3 bytes)
+        
         let bytes: number[] = [
             (data >> 16) & 0xFF,  // High byte (bits 23-16)
             (data >> 8) & 0xFF,   // Middle byte (bits 15-8)
             (data & 0xFF)         // Low byte (bits 7-0)
         ];
-        
+        let crc8 = CRC8.compute(bytes);
+   
         // Use the CRC8 class to compute the checksum
-        return CRC8.compute(bytes);
+        return crc8
     }
 
     /**
@@ -307,7 +311,8 @@ namespace leagueir {
      * @param value the 4-bit value (0-15)
      */
 
-    export function sendIRPacket(pin: DigitalPin, id: number, status: number, command: number, value: number): void {
+
+    function packPacket(id: number, status: number, command: number, value: number, crc: number): number {
         // Mask inputs to ensure they fit in their bit allocations
         let maskedId = id & 0xFFF;        // 12 bits
         let maskedStatus = status & 0xF;   // 4 bits
@@ -315,20 +320,19 @@ namespace leagueir {
         let maskedValue = value & 0xF;     // 4 bits
         
         // Pack the first 24 bits (all data fields: id + status + command + value)
-        let data24bit = (maskedId << 12) | (maskedStatus << 8) | (maskedCommand << 4) | maskedValue;
-        
+        return  (maskedId << 20) | (maskedStatus << 16) | (maskedCommand << 12) | ( maskedValue << 8) | crc; // Include CRC in the final packet
+    }
+
+    export function sendIRPacket(pin: DigitalPin, id: number, status: number, command: number, value: number): void {
+
+        let packet = packPacket(id, status, command, value, 0);
         // Calculate CRC8 for the 24-bit data
-        let crc8 = calculateCRC8(data24bit);
+        let crc8 = calculateCRC8(packet);
         
-        // Pack everything into 32-bit value:
-        // Bits 31-20: id (12 bits)
-        // Bits 19-16: status (4 bits) 
-        // Bits 15-12: command (4 bits)
-        // Bits 11-8:  value (4 bits)
-        // Bits 7-0:   crc8 (8 bits)
-        let packet = (maskedId << 20) | (maskedStatus << 16) | (maskedCommand << 12) | (maskedValue << 8) | crc8;
+        packet = packet | (crc8 & 0xFF); // Include CRC in the final packet
         
         // Send the packet
+        serial.writeLine("Sending IR Packet: " + leagueir.toHex(packet));
         leagueir.sendCommandCpp(pin, packet);
     }
 
