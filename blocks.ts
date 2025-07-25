@@ -3,7 +3,7 @@
 /**
  * Functions to operate the LeagueIR controller
  */
-//%  icon="\uf024" color="#F37121"  block="IR Communication"
+//%  icon="\uf024" color="#F37121"  block="IR Comm"
 namespace jtlinterface {
 
     //% block="Read NEC IR code from pin $pin"
