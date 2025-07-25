@@ -24,23 +24,12 @@ namespace jtlinterface {
     }
 
     //% block="on IR packet received from pin $pin"
-    //% weight=50
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% draggableParameters="reporter"
-    export function onIrPacketReceived(pin: number, handler: (id: number, status: number, command: number, value: number) => void): void {
+    export function onIrPacketReceived(pin: DigitalPin, handler: (id: number, status: number, command: number, value: number) => void): void {
         leagueir.onIrPacketReceived(pin, handler);
     }
 
     //% block="send IR packet id $id status $status command $command value $value on pin $pin"
-    //% weight=60
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=4
-    //% pin.fieldOptions.tooltips="false" pin.fieldOptions.width="300"
-    //% id.min=0 id.max=4095 id.defl=1
-    //% status.min=0 status.max=15 status.defl=0
-    //% command.min=0 command.max=15 command.defl=1
-    //% value.min=0 value.max=15 value.defl=0
-    export function sendIRPacket(pin: number, id: number, status: number, command: number, value: number): void {
+    export function sendIRPacket(pin: DigitalPin, id: number, status: number, command: number, value: number): void {
         leagueir.sendIRPacket(pin, id, status, command, value);
     }
 }

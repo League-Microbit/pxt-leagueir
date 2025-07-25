@@ -232,10 +232,10 @@ namespace leagueir {
      * @param pin the digital pin to receive IR packets from
      * @param handler function to call when a packet is received with id, status, command, value, and crc8
      */
-    export function onIrPacketReceived(pin: number, handler: (id: number, status: number, command: number, value: number) => void): void {
+    export function onIrPacketReceived(pin: DigitalPin, handler: (id: number, status: number, command: number, value: number) => void): void {
         control.inBackground(() => {
             while (true) {
-                let result = readNecCode(pin as DigitalPin);
+                let result = readNecCode(pin);
 
                 if (result != 0) {
                     // Extract fields from the 32-bit packet
@@ -307,7 +307,7 @@ namespace leagueir {
      * @param value the 4-bit value (0-15)
      */
 
-    export function sendIRPacket(pin: number, id: number, status: number, command: number, value: number): void {
+    export function sendIRPacket(pin: DigitalPin, id: number, status: number, command: number, value: number): void {
         // Mask inputs to ensure they fit in their bit allocations
         let maskedId = id & 0xFFF;        // 12 bits
         let maskedStatus = status & 0xF;   // 4 bits
