@@ -3,26 +3,21 @@
     "version": "0.20250723.1",
     "description": "LeagueIR Transmitter",
     "license": "MIT",
-    "author": "Eric Busboom <eric.busboom@jointheleague.org>",
-    "homepage": "",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/ericbusboom/pxt-demo"
-    },
     "dependencies": {
         "core": "*"
-
     },
     "files": [
         "README.md",
-        "ir.ts",
-        "blocks.ts",
-        "pulse.cpp",
+        "src/main.ts",
+        "src/ir.ts",
+        "src/pulse.cpp",
+        "src/lib.ts",
         "shims.d.ts",
         "enums.d.ts"
     ],
     "testFiles": [
-        "test.ts"
+        "test/test.ts",
+        "test/testIRPacket.ts"
     ],
     "public": true,
     "targetVersions": {
@@ -32,5 +27,11 @@
     "supportedTargets": [
         "microbit"
     ],
-    "preferredEditor": "tsprj"
+    "preferredEditor": "tsprj",
+    "author": "Eric Busboom <eric.busboom@jointheleague.org>",
+    "homepage": "",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ericbusboom/pxt-demo"
+    }
 }

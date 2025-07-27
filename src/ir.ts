@@ -1,92 +1,64 @@
 
 
-class CRC8 {
-  private static table: number[] = CRC8.generateCRCTable(0x07);
 
-  /**
-   * Generates a CRC-8 lookup table using the given polynomial
-   * @param polynomial Polynomial for CRC (e.g., 0x07 for CRC-8-CCITT)
-   */
-  private static generateCRCTable(polynomial: number): number[] {
-    const table: number[] = [];
-    for (let i = 0; i < 256; i++) {
-      let curr = i;
-      for (let j = 0; j < 8; j++) {
-        if ((curr & 0x80) !== 0) {
-          curr = (curr << 1) ^ polynomial;
-        } else {
-          curr <<= 1;
-        }
-      }
-      table[i] = curr & 0xFF;
-    }
-    return table;
-  }
-
-  /**
-   * Computes CRC-8 over the input data
-   * @param data Input data as number array
-   * @param initial Initial CRC value (default 0x00)
-   */
-  static compute(data: number[], initial = 0x00): number {
-    let crc = initial;
-    for (let i = 0; i < data.length; i++) {
-      crc = CRC8.table[(crc ^ data[i]) & 0xFF];
-    }
-    return crc;
-  }
-}
 
 namespace leagueir {
 
-const AGC_MARK = 9000;                 // AGC MARK = 9000µs (9ms)
-const AGC_MARK_MAX = AGC_MARK + 500;  // AGC MARK MAX = 9500µs
-const AGC_MARK_MIN = AGC_MARK - 500;  // AGC MARK MIN = 8500µs
+    const AGC_MARK = 9000;                 // AGC MARK = 9000µs (9ms)
+    const AGC_MARK_MAX = AGC_MARK + 500;  // AGC MARK MAX = 9500µs
+    const AGC_MARK_MIN = AGC_MARK - 500;  // AGC MARK MIN = 8500µs
 
-const AGC_SPACE = 4500;               // AGC SPACE = 4500µs (4.5ms)
-const AGC_SPACE_MAX = AGC_SPACE + 500; // AGC SPACE MAX = 5000µs
-const AGC_SPACE_MIN = AGC_SPACE - 500; // AGC SPACE MIN = 4000µs
+    const AGC_SPACE = 4500;               // AGC SPACE = 4500µs (4.5ms)
+    const AGC_SPACE_MAX = AGC_SPACE + 500; // AGC SPACE MAX = 5000µs
+    const AGC_SPACE_MIN = AGC_SPACE - 500; // AGC SPACE MIN = 4000µs
 
-const ONE_BIT = 2250;                 // ONE BIT total = 2250µs
-const ZERO_BIT = 1120;                // ZERO BIT total = 1120µs
-const BIT_MARK = 560;                 // BIT MARK = 560µs
+    const ONE_BIT = 2250;                 // ONE BIT total = 2250µs
+    const ZERO_BIT = 1120;                // ZERO BIT total = 1120µs
+    const BIT_MARK = 560;                 // BIT MARK = 560µs
 
-const BIT_MARK_MAX = BIT_MARK + 75;   // BIT MARK MAX = 635µs
-const BIT_MARK_MIN = BIT_MARK - 120;  // BIT MARK MIN = 440µs
+    const BIT_MARK_MAX = BIT_MARK + 75;   // BIT MARK MAX = 635µs
+    const BIT_MARK_MIN = BIT_MARK - 120;  // BIT MARK MIN = 440µs
 
-const ZERO_SPACE = ZERO_BIT - BIT_MARK;       // ZERO SPACE = 560µs
-const ZERO_SPACE_MAX = ZERO_SPACE + 150;      // ZERO SPACE MAX = 710µs
-const ZERO_SPACE_MIN = ZERO_SPACE - 170;      // ZERO SPACE MIN = 390µs
+    const ZERO_SPACE = ZERO_BIT - BIT_MARK;       // ZERO SPACE = 560µs
+    const ZERO_SPACE_MAX = ZERO_SPACE + 150;      // ZERO SPACE MAX = 710µs
+    const ZERO_SPACE_MIN = ZERO_SPACE - 170;      // ZERO SPACE MIN = 390µs
 
-const ONE_SPACE = ONE_BIT - BIT_MARK;         // ONE SPACE = 1690µs
-const ONE_SPACE_MAX = ONE_SPACE + 150;        // ONE SPACE MAX = 1840µs
-const ONE_SPACE_MIN = ONE_SPACE - 200;        // ONE SPACE MIN = 1490µs
+    const ONE_SPACE = ONE_BIT - BIT_MARK;         // ONE SPACE = 1690µs
+    const ONE_SPACE_MAX = ONE_SPACE + 150;        // ONE SPACE MAX = 1840µs
+    const ONE_SPACE_MIN = ONE_SPACE - 200;        // ONE SPACE MIN = 1490µs
 
-const STOP_BIT = 560;                 // STOP BIT = 560µs
+    const STOP_BIT = 560;                 // STOP BIT = 560µs
 
     // Constants for pin states
     const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
     const IR_LOW = 1; // IR LED is considered "low" when the digital pin reads 1
 
 
-
-
-    export function toHex(num: number): string {
-        // Convert to 32-bit unsigned integer
-        num = num >>> 0;
-
-        let hex = "";
-        const hexChars = "0123456789ABCDEF";
-
-        // Extract each hex digit (4 bits at a time) from right to left
-        for (let i = 0; i < 8; i++) {
-            hex = hexChars[num & 0xF] + hex;
-            num = num >>> 4;
-        }
-
-
-        return hex;
+    // Status codes for IR packets
+    export enum IrStatus {
+        HELLO = 0,
+        REQUEST = 1,
+        ACK = 2,
+        NACK = 3
     }
+
+    // Command codes for IR packets
+    export enum IrCommand {
+        IAM = 0
+    }
+
+
+
+    /* Scramble the machine id and return the last 12 bits,
+    * to be used as a unique identifier, particularly useful for the IR packet
+    * ID value. */
+
+    function getUniqueId(): number {
+        let machineId = control.deviceSerialNumber();
+        let scrambledId = irlib.murmur_32_scramble(machineId);
+        // Return the last 12 bits
+        return scrambledId & 0xFFF;
+    }  
 
 
     export let irError = "";
@@ -252,7 +224,7 @@ const STOP_BIT = 560;                 // STOP BIT = 560µs
 
                     // Call handler with extracted values (including received CRC for verification)
                     if (crc8 !== expectedCrc) {
-                        irError = "CRC mismatch: from " + leagueir.toHex(result) + ", expected " + leagueir.toHex(expectedCrc) + ", got " + leagueir.toHex(crc8);
+                        irError = "CRC mismatch: from " + irlib.toHex(result) + ", expected " + irlib.toHex(expectedCrc) + ", got " + irlib.toHex(crc8);
                         serial.writeLine("E: " + irError);
                         continue; // Skip this packet if CRC does not match
                     }
@@ -325,6 +297,10 @@ const STOP_BIT = 560;                 // STOP BIT = 560µs
 
     export function sendIRPacket(pin: DigitalPin, id: number, status: number, command: number, value: number): void {
 
+        if (id == 0) {
+            id = getUniqueId(); // Use unique ID if id is 0
+        }
+
         let packet = packPacket(id, status, command, value, 0);
         // Calculate CRC8 for the 24-bit data
         let crc8 = calculateCRC8(packet);
@@ -332,7 +308,7 @@ const STOP_BIT = 560;                 // STOP BIT = 560µs
         packet = packet | (crc8 & 0xFF); // Include CRC in the final packet
         
         // Send the packet
-        serial.writeLine("Sending IR Packet: " + leagueir.toHex(packet));
+        serial.writeLine("Sending IR Packet: " + irlib.toHex(packet));
         leagueir.sendCommandCpp(pin, packet);
     }
 
