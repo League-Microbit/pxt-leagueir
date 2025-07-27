@@ -36,7 +36,7 @@ namespace leagueir {
 
     // Status codes for IR packets
     export enum IrStatus {
-        HELLO = 0,
+        NONE = 0,
         REQUEST = 1,
         ACK = 2,
         NACK = 3
@@ -44,7 +44,8 @@ namespace leagueir {
 
     // Command codes for IR packets
     export enum IrCommand {
-        IAM = 0
+        PAIR = 0,
+        IAM = 1
     }
 
 

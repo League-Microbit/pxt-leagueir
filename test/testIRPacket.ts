@@ -2,18 +2,21 @@
 
 function testIPReceive() {
     
-    leagueir.onIrPacketReceived(DigitalPin.P1, function (id: number, status: number, command: number, value: number) {
+    leagueir.onIrPacketReceived(DigitalPin.P16, function (id: number, status: number, command: number, value: number) {
         if (id == 0 && status == 0 && command == 0 && value == 0) {
             // Error 
             serial.writeLine("E: " + leagueir.irError);
+            basic.showIcon(IconNames.Sad);
         } else {
             // Valid packet received
             serial.writeLine("ID: " + id + ", " + irlib.toHex(id) + 
                             " S: " + status + ", " + irlib.toHex(status) + 
                             " C: " + command + ", " + irlib.toHex(command) + 
-                            " V: " + value + ", " + irlib.toHex(value));
+                " V: " + value + ", " + irlib.toHex(value));
+            basic.showIcon(IconNames.Happy);
         }
         basic.pause(100);
+        basic.clearScreen();
     });
 
 }
