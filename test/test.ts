@@ -3,8 +3,8 @@
 serial.writeLine("Starting tests");
 
 
-//testIPReceive();
-//testIPSend();
-testRadioChannelSend();
-//testRadioChannelReceive();
+//irtest.testIPReceive();
+//irtest.testIPSend();
+irtest.testRadioChannelSend();
+//irtest.testRadioChannelReceive();
 
