@@ -34,6 +34,11 @@ namespace leagueir {
     const IR_LOW = 1; // IR LED is considered "low" when the digital pin reads 1
 
 
+    export enum Address {
+        RadioChannel = 0xD00D, // Radio channel and radio group 
+    }
+
+
     // Status codes for IR packets
     export enum IrStatus {
         NONE = 0,
@@ -147,23 +152,27 @@ namespace leagueir {
 
             let n = 0;
             let b = 0;
-
-            for (let i = 0; i < 32; i++) {
-
-                b = leagueir.readNecBit(pin);
-                if (b < 0) {
-                    return 0;
-
+            // Use the same byte order as sendCommand: [3,2,1,0]
+            const byteOrder = [2, 3, 0, 1];
+            let bytes: number[] = [0, 0, 0, 0];
+            for (let i = 0; i < 4; i++) {
+                let byteVal = 0;
+                // For each bit in the byte (LSB first)
+                for (let bit = 0; bit < 8; bit++) {
+                    b = leagueir.readNecBit(pin);
+                    if (b < 0) {
+                        return 0;
+                    }
+                    if (b) {
+                        byteVal |= (1 << bit); // LSB first within byte
+                    } else {
+                        byteVal &= ~(1 << bit);
+                    }
                 }
-
-                if (b) {
-                    // bit is a 1
-                    n |= (1 << (31 - i));
-                } else {
-                    // bit is a 0
-                    n &= ~(1 << (31 - i));
-                }
+                bytes[byteOrder[i]] = byteVal & 0xFF;
             }
+            // Reconstruct the 32-bit value from the bytes
+            n = (bytes[3] << 24) | (bytes[2] << 16) | (bytes[1] << 8) | bytes[0];
 
             // read the final stop bit
             let pulseTime = timePulse(pin, 1, STOP_BIT + 200);
@@ -221,7 +230,7 @@ namespace leagueir {
                     let crc8 = result & 0xFF;             // Bits 7-0: crc8 (8 bits)
 
                     // Verify CRC
-                    let expectedCrc = calculateCRC8(result & 0xFFFFFF00);
+                    let expectedCrc = CRC8.fromNumber(result & 0xFFFFFF00);
 
                     // Call handler with extracted values (including received CRC for verification)
                     if (crc8 !== expectedCrc) {
@@ -261,19 +270,7 @@ namespace leagueir {
      * @param data the 24-bit data to calculate CRC8 for
      * @returns 8-bit CRC value
      */
-    function calculateCRC8(data: number): number {
-        // Convert 24-bit number to byte array (3 bytes)
-        
-        let bytes: number[] = [
-            (data >> 16) & 0xFF,  // High byte (bits 23-16)
-            (data >> 8) & 0xFF,   // Middle byte (bits 15-8)
-            (data & 0xFF)         // Low byte (bits 7-0)
-        ];
-        let crc8 = CRC8.compute(bytes);
-   
-        // Use the CRC8 class to compute the checksum
-        return crc8
-    }
+
 
     /**
      * Send a custom IR packet with id, status, command, and value
@@ -304,7 +301,7 @@ namespace leagueir {
 
         let packet = packPacket(id, status, command, value, 0);
         // Calculate CRC8 for the 24-bit data
-        let crc8 = calculateCRC8(packet);
+        let crc8 = CRC8.fromNumber(packet & 0xFFFFFF00); 
         
         packet = packet | (crc8 & 0xFF); // Include CRC in the final packet
         

@@ -80,18 +80,20 @@ namespace leagueir
 
         sendIrBit(p, AGC_MARK, AGC_SPACE);
 
-        // Send 32 data bits (MSB first)
-        for (int i = 31; i >= 0; i--)
-        {
-            if (command & (1UL << i))
-            {
-                sendIrBit(p, BIT_MARK, ONE_SPACE); // '1' bit
-            }
-            else
-            {
-                sendIrBit(p, BIT_MARK, ZERO_SPACE); // '0' bit
+        // Send 32 data bits in custom byte order, LSB-first bit order within each byte
+        const int byteOrder[4] = {2,3,0,1}; // Change to {3,4,0,1} if protocol requires
+        for (int i = 0; i < 4; i++) {
+            int byte = byteOrder[i];
+            uint8_t b = (command >> (8 * byte)) & 0xFF;
+            for (int bit = 0; bit < 8; bit++) {
+                if (b & (1 << bit)) {
+                    sendIrBit(p, BIT_MARK, ONE_SPACE); // '1' bit
+                } else {
+                    sendIrBit(p, BIT_MARK, ZERO_SPACE); // '0' bit
+                }
             }
         }
+
 
         // Send final stop bit
         sendIrBit(p, STOP_BIT, 10000);

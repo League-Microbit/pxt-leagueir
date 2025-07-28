@@ -1,43 +1,59 @@
 
 
 class CRC8 {
-  private static table: number[] = CRC8.generateCRCTable(0x07);
+    private static table: number[] = CRC8.generateCRCTable(0x07);
 
-  /**
-   * Generates a CRC-8 lookup table using the given polynomial
-   * @param polynomial Polynomial for CRC (e.g., 0x07 for CRC-8-CCITT)
-   */
-  private static generateCRCTable(polynomial: number): number[] {
-    const table: number[] = [];
-    for (let i = 0; i < 256; i++) {
-      let curr = i;
-      for (let j = 0; j < 8; j++) {
-        if ((curr & 0x80) !== 0) {
-          curr = (curr << 1) ^ polynomial;
-        } else {
-          curr <<= 1;
+    /**
+     * Generates a CRC-8 lookup table using the given polynomial
+     * @param polynomial Polynomial for CRC (e.g., 0x07 for CRC-8-CCITT)
+     */
+    private static generateCRCTable(polynomial: number): number[] {
+
+        const table: number[] = [];
+        for (let i = 0; i < 256; i++) {
+            let curr = i;
+            for (let j = 0; j < 8; j++) {
+            if ((curr & 0x80) !== 0) {
+                curr = (curr << 1) ^ polynomial;
+            } else {
+                curr <<= 1;
+            }
+            }
+            table[i] = curr & 0xFF;
         }
-      }
-      table[i] = curr & 0xFF;
+        return table;
     }
-    return table;
-  }
 
-  /**
-   * Computes CRC-8 over the input data
-   * @param data Input data as number array
-   * @param initial Initial CRC value (default 0x00)
-   */
-  static compute(data: number[], initial = 0x00): number {
-    let crc = initial;
-    for (let i = 0; i < data.length; i++) {
-      crc = CRC8.table[(crc ^ data[i]) & 0xFF];
+    /**
+     * Computes CRC-8 over the input data
+     * @param data Input data as number array
+     * @param initial Initial CRC value (default 0x00)
+     */
+    static fromBytes(data: number[], initial = 0x00): number {
+        let crc = initial;
+        for (let i = 0; i < data.length; i++) {
+            crc = CRC8.table[(crc ^ data[i]) & 0xFF];
+        }
+        return crc;
     }
-    return crc;
-  }
+
+    static fromNumber(num: number, initial = 0x00): number {
+        // Convert number to byte array (4 bytes for 32-bit)
+        const bytes: number[] = [
+            (num >> 24) & 0xFF,  // Highest byte
+            (num >> 16) & 0xFF,  // High byte
+            (num >> 8) & 0xFF,   // Middle byte
+            num & 0xFF           // Low byte
+        ];
+        return CRC8.fromBytes(bytes, initial);
+    }
+    
+  
 }
 
 namespace irlib {
+
+
     export function toHex(num: number): string {
         // Convert to 32-bit unsigned integer
         num = num >>> 0;

@@ -35,3 +35,36 @@ function testIPSend() {
         basic.pause(1000);
     });
 }
+
+function testRadioChannelSend() {
+
+    let i = 0;
+    basic.forever(function () {
+        let channel = i;
+        let group = Math.floor(i / 2);
+        let command = (channel << 8) | group;
+        i++;
+        basic.showIcon(IconNames.Target);
+        leagueir.sendCommand(DigitalPin.P8, leagueir.Address.RadioChannel, command);
+        basic.clearScreen();
+        basic.pause(600);
+        
+    });
+}
+
+function testRadioChannelReceive() {
+    leagueir.onNecReceived(DigitalPin.P16, function (address: number, command: number) {
+        if (address == leagueir.Address.RadioChannel) {
+            let channel = (command >> 8) & 0xFF;
+            let group = command & 0xFF;
+            
+            serial.writeLine("Radio Channel: " + channel + ", Group: " + group);
+            basic.showIcon(IconNames.Happy);
+        } else {
+            serial.writeLine("Unknown address: " + address);
+            basic.showIcon(IconNames.Sad);
+        }
+        basic.pause(100);
+        basic.clearScreen();
+    });
+}
