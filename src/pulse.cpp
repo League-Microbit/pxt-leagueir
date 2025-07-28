@@ -16,13 +16,26 @@ using namespace pxt;
 namespace leagueir
 {
 
+    const int16_t AGC_MARK = 9000 + 300;  // 9ms AGC burst +300 to fix timing error
+    const int16_t AGC_SPACE = 4500 + 100; // 4.5ms space +300 to fix timing error
+
+    const int16_t BIT_MARK = 560; // 560us mark for all bits
+
+    const int16_t ONE_BIT = 2250;  // total length of a 1 bit
+    const int16_t ZERO_BIT = 1120; // total length of a 0 bit
+
+    const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
+    const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
+
+    const int16_t STOP_BIT = 560; // Final 560us mark
+
     /*
      * Send an IR bit using PWM carrier frequency (38kHz)
      * @param pin the output pin
      * @param highMicros microseconds to send carrier signal
      * @param lowMicros microseconds to send no signal
      */
-    void sendIrBit(MicroBitPin *p, int16_t highTime, int16_t lowTime)
+    inline void sendIrBit(MicroBitPin *p, int16_t highTime, int16_t lowTime)
     {
 
         if (!p)
@@ -37,42 +50,52 @@ namespace leagueir
         sleep_us(lowTime);
     }
 
+    inline void sendIrByte(MicroBitPin *p, uint8_t b)
+    {
+        if (!p)
+            return;
+
+        // Send each bit of the byte
+        for (int i = 0; i < 8; i++)
+        {
+            if (b & (1 << i))
+            {
+                sendIrBit(p, BIT_MARK, ONE_SPACE); // '1' bit: 560us ON + 1690us OFF
+            }
+            else
+            {
+                sendIrBit(p, BIT_MARK, ZERO_SPACE); // '0' bit: 560us ON + 560us OFF
+            }
+        }
+    }
+
+    void sendIrWord(MicroBitPin *p, uint16_t word)
+    {
+        if (!p)
+            return;
+
+        // Send each byte of the word
+        sendIrByte(p, word & 0xFF);        // Low byte
+        sendIrByte(p, (word >> 8) & 0xFF); // High byte
+  
+    }
+
     /*
-     * Send an NEC format IR command. The NEC protocol consists of:
-     * 1. AGC burst: 9ms ON, 4.5ms OFF
-     * 2. 32 data bits (address + ~address + command + ~command)
-     * 3. Each bit: 560us ON + (560us OFF for '0' or 1690us OFF for '1')
-     * 4. Final stop bit: 560us ON
-     * 5. Message gap of at least 40ms before next command
+     * Send an NEC format IR command. 
      * */
 
     //%
-    void sendCommand(int pin, uint32_t command)
+    void sendIrAddressCommand(int pin, uint16_t address, uint16_t command)
     {
 
         // NEC protocol timing (all in microseconds)
-
-        const int16_t AGC_MARK = 9000 + 300;  // 9ms AGC burst +300 to fix timing error
-        const int16_t AGC_SPACE = 4500 + 100; // 4.5ms space +300 to fix timing error
-
-        const int16_t BIT_MARK = 560; // 560us mark for all bits
-
-        const int16_t ONE_BIT = 2250;  // total length of a 1 bit
-        const int16_t ZERO_BIT = 1120; // total length of a 0 bit
-
-        const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
-        const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
-
-        const int16_t STOP_BIT = 560; // Final 560us mark
 
         MicroBitPin *p = getPin(pin);
         // Set up 38kHz carrier (period = 26us)
         p->setAnalogPeriodUs(26);
 
 
-        if (!p)
-        {
-            sleep_us(2000);
+        if (!p) {
             return;
         }
 
@@ -80,23 +103,18 @@ namespace leagueir
 
         sendIrBit(p, AGC_MARK, AGC_SPACE);
 
-        // Send 32 data bits in custom byte order, LSB-first bit order within each byte
-        const int byteOrder[4] = {2,3,0,1}; // Change to {3,4,0,1} if protocol requires
-        for (int i = 0; i < 4; i++) {
-            int byte = byteOrder[i];
-            uint8_t b = (command >> (8 * byte)) & 0xFF;
-            for (int bit = 0; bit < 8; bit++) {
-                if (b & (1 << bit)) {
-                    sendIrBit(p, BIT_MARK, ONE_SPACE); // '1' bit
-                } else {
-                    sendIrBit(p, BIT_MARK, ZERO_SPACE); // '0' bit
-                }
-            }
-        }
-
+        sendIrWord(p, address);
+        sendIrWord(p, command);
 
         // Send final stop bit
         sendIrBit(p, STOP_BIT, 10000);
+    }
+
+    //% 
+    void sendIrCode(int pin, uint32_t code){
+        sendIrAddressCommand(pin, 
+            (code >> 16) & 0xFFFF, // Extract address (upper 16 bits)
+            code & 0xFFFF);       // Extract command (lower 16 bits)
     }
 
     /*
