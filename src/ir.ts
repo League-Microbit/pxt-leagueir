@@ -139,12 +139,23 @@ namespace leagueir {
     }
 
 
-    export function readNecCode(pin: DigitalPin): number {
+    export function readNecCode(pin: DigitalPin, timeout?: number): number {
 
         // Configure pins
         pins.setPull(pin, PinPullMode.PullUp); // Use pull-up resistor on the input pin
 
+        let startTime = input.runningTime();
+
+        if (timeout === undefined) {
+            timeout = 1000; // Default timeout of 1 second
+        }
+
         while (true) {
+
+            if (input.runningTime() - startTime > timeout) {
+                irError = "Timeout waiting for NEC code";
+                return 0; // Timeout
+            }
 
             if (!leagueir.readACGHeader(pin)) {
                 continue;
@@ -185,25 +196,29 @@ namespace leagueir {
 
         }
     }
+
+    //% 
+    export function readNecAddressCommand(pin: DigitalPin, timeout?: number): [number, number] {
+        let result = leagueir.readNecCode(pin, timeout);
+
+        // Split the 32-bit result into address and command
+        let address = (result >> 16) & 0xFFFF; // High 16 bits
+        let command = result & 0xFFFF;         // Low 16 bit
+
+        //serial.writeLine("Read NEC Address: " + irlib.toHex(result) + " " + irlib.toHex(address) + ", Command: " + irlib.toHex(command));
+
+        return [address, command];
+    }
+
+    //% 
     export function onNecReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
             while (true) {
-                let result = readNecCode(pin);
+                let [address, command] = readNecAddressCommand(pin);
 
-                let address: number;
-                let command: number;
-
-                if (result == 0) {
-                    // Error occurred, return address=0 and command=error code
-                    address = 0;
-                    command = 0;
-                } else {
-                    // Split 32-bit result into high 16 bits (address) and low 16 bits (command)
-                    address = (result >> 16) & 0xFFFF;
-                    command = (result & 0xFFFF);
+                if (address != 0) {
+                    handler(address, command);
                 }
-
-                handler(address, command);
 
                 // Small delay before next reading
                 basic.pause(10);

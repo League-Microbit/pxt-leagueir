@@ -17,7 +17,8 @@
     ],
     "testFiles": [
         "test/test.ts",
-        "test/testIRPacket.ts"
+        "test/testIRPacket.ts",
+        "test/testNec.ts"
     ],
     "public": true,
     "targetVersions": {
