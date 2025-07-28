@@ -265,12 +265,6 @@ namespace leagueir {
         leagueir.sendCommandCpp(pin, combined);
     }
 
-    /**
-     * Calculate CRC8 for the given data
-     * @param data the 24-bit data to calculate CRC8 for
-     * @returns 8-bit CRC value
-     */
-
 
     /**
      * Send a custom IR packet with id, status, command, and value

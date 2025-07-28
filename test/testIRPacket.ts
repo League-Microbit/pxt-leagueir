@@ -39,6 +39,7 @@ function testIPSend() {
 function testRadioChannelSend() {
 
     let i = 0;
+
     basic.forever(function () {
         let channel = i;
         let group = Math.floor(i / 2);
@@ -48,7 +49,7 @@ function testRadioChannelSend() {
         leagueir.sendCommand(DigitalPin.P8, leagueir.Address.RadioChannel, command);
         basic.clearScreen();
         basic.pause(600);
-        
+    
     });
 }
 
@@ -68,3 +69,19 @@ function testRadioChannelReceive() {
         basic.clearScreen();
     });
 }
+
+
+    /* Send a hello IR message on the given pin to signal to the recipient that we want
+    to negotiate a radio channel. */
+
+    export function sendIRRadioMessage(pin: DigitalPin, channel: number , group: number): void {
+        let command = (channel << 8) | group;
+        leagueir.sendCommand(pin, leagueir.Address.RadioChannel, command);
+    }
+
+    export function recieveIrMessages(pin: DigitalPin) {
+        leagueir.onIrPacketReceived(pin, function (id: number, status: number, command: number, value: number) {
+
+        });
+    }
+
