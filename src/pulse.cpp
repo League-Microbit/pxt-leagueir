@@ -37,9 +37,9 @@ namespace leagueir
     // const int16_t STOP_BIT = 560; // Final 560us mark
 
     // Adsjusted for sendIrBitDigital
-    const int16_t AGC_MARK = 9000+400;  // 9ms AGC burst 
+    const int16_t AGC_MARK = 9000;  // 9ms AGC burst 
     const int16_t AGC_SPACE = 4500; // 4.5ms space 
-    const int16_t BIT_MARK = 560+10; // 560us mark for all bits
+    const int16_t BIT_MARK = 560; // 560us mark for all bits
     const int16_t ONE_BIT = 2250;  // total length of a 1 bit
     const int16_t ZERO_BIT = 1120; // total length of a 0 bit
     const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
@@ -98,7 +98,6 @@ namespace leagueir
          uint32_t end = system_timer_current_time_us();
         __enable_irq();
 
-
         float elapsed = (end - start); 
         elapsed -= (CALIBRATE_COUNT * 2 * SLEEP_TIME_US); // Subtract the time spent waiting
 
@@ -117,7 +116,7 @@ namespace leagueir
     {
         /* We're allowing for different on and off half periods to more
         finely tune the timing.  */
-        #define PERIOD_US 26 // 26 == 38kHz carrier frequency period in microseconds
+        #define PERIOD_US 24 // 26 == 38kHz carrier frequency period in microseconds
         #define ON_HALF_PERIOD 13
         #define OFF_HALF_PERIOD (PERIOD_US - ON_HALF_PERIOD) // 12us is half of the 25us period
         /* The high time portion, where we are toggling at about 38kHz,
@@ -127,17 +126,15 @@ namespace leagueir
         highTime += ON_HALF_PERIOD; // Adjust high time to exclude the last half period
         lowTime -= ON_HALF_PERIOD; // Adjust low time to include the last half period
 
-        int cPeriod = PERIOD_US + calibrateTime; // Adjust period based on calibration time
-
-        int16_t sHighTime = (int16_t)highTime; // Because it will go negative.
+        uint32_t sHighTime = (uint32_t)highTime; // Because it will go negative.
 
         __disable_irq();
-        while(sHighTime > 0){
+        uint32_t start = system_timer_current_time_us();
+        while(system_timer_current_time_us() - start < sHighTime){
             p->setDigitalValue(1);
             sleep_us(ON_HALF_PERIOD);
             p->setDigitalValue(0);
             sleep_us(OFF_HALF_PERIOD);
-            sHighTime -= cPeriod;
         }
         __enable_irq();
 
