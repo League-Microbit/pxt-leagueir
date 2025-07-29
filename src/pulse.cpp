@@ -27,8 +27,8 @@ namespace leagueir
      * These are alternative timing constants for analog IR bit sending.
      * Uncomment and use if needed for analog timing correction.
      */
-    // const int16_t AGC_MARK = 9000 + 300;  // 9ms AGC burst +300 to fix timing error
-    // const int16_t AGC_SPACE = 4500 + 100; // 4.5ms space +300 to fix timing error
+    // const int16_t AGC_MARK = 9000 ;  // 9ms AGC burst +300 to fix timing error
+    // const int16_t AGC_SPACE = 4500 ; // 4.5ms space +300 to fix timing error
     // const int16_t BIT_MARK = 560; // 560us mark for all bits
     // const int16_t ONE_BIT = 2250;  // total length of a 1 bit
     // const int16_t ZERO_BIT = 1120; // total length of a 0 bit
@@ -37,14 +37,14 @@ namespace leagueir
     // const int16_t STOP_BIT = 560; // Final 560us mark
 
     // Adsjusted for sendIrBitDigital
-    const int16_t AGC_MARK = 9000;  // 9ms AGC burst 
+    const int16_t AGC_MARK = 9000+400;  // 9ms AGC burst 
     const int16_t AGC_SPACE = 4500; // 4.5ms space 
-    const int16_t BIT_MARK = 560; // 560us mark for all bits
+    const int16_t BIT_MARK = 560+10; // 560us mark for all bits
     const int16_t ONE_BIT = 2250;  // total length of a 1 bit
     const int16_t ZERO_BIT = 1120; // total length of a 0 bit
     const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
     const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
-    const int16_t STOP_BIT = 560; // Final 560us mark
+    const int16_t STOP_BIT = 560+10; // Final 560us mark
 
 
     /*
@@ -120,14 +120,13 @@ namespace leagueir
         #define PERIOD_US 26 // 26 == 38kHz carrier frequency period in microseconds
         #define ON_HALF_PERIOD 13
         #define OFF_HALF_PERIOD (PERIOD_US - ON_HALF_PERIOD) // 12us is half of the 25us period
-        /* The high time portion, where we are togglinh at about 38kHz,
+        /* The high time portion, where we are toggling at about 38kHz,
         * should start and end with a 1, so the 0 portion of the high timne
         * portion is moved into the low time potion */
 
         highTime += ON_HALF_PERIOD; // Adjust high time to exclude the last half period
         lowTime -= ON_HALF_PERIOD; // Adjust low time to include the last half period
 
-        
         int cPeriod = PERIOD_US + calibrateTime; // Adjust period based on calibration time
 
         int16_t sHighTime = (int16_t)highTime; // Because it will go negative.

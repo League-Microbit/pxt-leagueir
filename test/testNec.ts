@@ -22,10 +22,10 @@ namespace irtest {
     }
 
     export function testSendNecCode() {
-
+        leagueir.calibrate_cpp(DigitalPin.P0);
         while (true) {
             leagueir.sendIrAddressCommand_cpp(DigitalPin.P8, 0x1234, 0xABCD);
-            pause(800);
+            pause(1000);
         }
     }
 

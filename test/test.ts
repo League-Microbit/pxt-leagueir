@@ -7,10 +7,11 @@ serial.writeLine("Starting tests");
 //irtest.testRadioChannelSend();
 //irtest.testRadioChannelReceive();
 
-//irtest.testSendNecCode();
+irtest.testSendNecCode();
+
 //irtest.testNextNecCode();
 
 //irtest.testPulseTiming();
 //irtest.testTimedBit();
 
-irtest.testCalibrate();
+//irtest.testCalibrate();
