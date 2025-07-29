@@ -18,7 +18,8 @@
     "testFiles": [
         "test/test.ts",
         "test/testIRPacket.ts",
-        "test/testNec.ts"
+        "test/testNec.ts",
+        "test/testPulse.ts"
     ],
     "public": true,
     "targetVersions": {
@@ -29,7 +30,6 @@
         "microbit"
     ],
     "preferredEditor": "tsprj",
-
     "author": "Eric Busboom <eric.busboom@jointheleague.org>",
     "homepage": "",
     "repository": {

@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "jake": "^10.9.2",
-    "pxt-microbit": "^8.0.10",
+    "pxt-microbit": "^8.0.13",
     "typings": "^0.6.10"
   }
 }

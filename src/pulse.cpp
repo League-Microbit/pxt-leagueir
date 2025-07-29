@@ -29,15 +29,41 @@ namespace leagueir
 
     const int16_t STOP_BIT = 560; // Final 560us mark
 
+    //% 
+    void sendTimedPulses(int pin, uint16_t highTime, uint16_t lowTime)
+    {
+        MicroBitPin *p = getPin(pin);
+        
+        if (!p)
+            return;
+
+        #define PERIOD_US 22 // 38kHz carrier frequency period in microseconds
+        #define HALF_PERIOD_US (PERIOD_US / 2)
+
+        uint16_t highPeriods = highTime / PERIOD_US;
+    
+        while(highPeriods-- > 0){
+            p->setDigitalValue(1);
+            sleep_us(PERIOD_US);
+            p->setDigitalValue(0);
+            sleep_us(PERIOD_US);
+        }
+
+        sleep_us(lowTime);
+
+    }
+
     /*
      * Send an IR bit using PWM carrier frequency (38kHz)
      * @param pin the output pin
      * @param highMicros microseconds to send carrier signal
      * @param lowMicros microseconds to send no signal
      */
-    inline void sendIrBit(MicroBitPin *p, int16_t highTime, int16_t lowTime)
+    //%
+    void sendIrBit(MicroBitPin *p, int16_t highTime, int16_t lowTime)
     {
 
+       
         if (!p)
             return;
 
@@ -90,10 +116,17 @@ namespace leagueir
 
         // NEC protocol timing (all in microseconds)
 
+
         MicroBitPin *p = getPin(pin);
+        
         // Set up 38kHz carrier (period = 26us)
         p->setAnalogPeriodUs(26);
 
+        // Force the re-allocation of the DAC/ADC hardware to this
+        // pin before the timing becomes important.
+        //p->setAnalogValue(0);
+
+        //p->obtainAnalogChannel();
 
         if (!p) {
             return;

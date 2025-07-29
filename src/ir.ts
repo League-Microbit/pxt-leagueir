@@ -263,6 +263,11 @@ namespace leagueir {
     }
 
 
+    //% shim=leagueir::sendTimedPulses
+    export function sendTimedPulses(pin: number, highTime: number, lowTime: number): void {
+
+    }
+
 
     //% shim=leagueir::sendIrAddressCommand
     export function sendIrAddressCommand(pin: number, address: number, command: number): void {
