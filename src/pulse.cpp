@@ -11,70 +11,148 @@
 #include <cstdint>
 #include <math.h>
 
+
 using namespace pxt;
 
 namespace leagueir
 {
 
+    /* Adjusted for sendIrBitAnalog 
     const int16_t AGC_MARK = 9000 + 300;  // 9ms AGC burst +300 to fix timing error
     const int16_t AGC_SPACE = 4500 + 100; // 4.5ms space +300 to fix timing error
-
     const int16_t BIT_MARK = 560; // 560us mark for all bits
-
     const int16_t ONE_BIT = 2250;  // total length of a 1 bit
     const int16_t ZERO_BIT = 1120; // total length of a 0 bit
-
     const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
     const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
+    const int16_t STOP_BIT = 560; // Final 560us mark
+    */
 
+    // Adsjusted for sendIrBitDigital
+    const int16_t AGC_MARK = 9000;  // 9ms AGC burst 
+    const int16_t AGC_SPACE = 4500; // 4.5ms space 
+    const int16_t BIT_MARK = 560; // 560us mark for all bits
+    const int16_t ONE_BIT = 2250;  // total length of a 1 bit
+    const int16_t ZERO_BIT = 1120; // total length of a 0 bit
+    const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
+    const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
     const int16_t STOP_BIT = 560; // Final 560us mark
 
-    //% 
-    void sendTimedPulses(int pin, uint16_t highTime, uint16_t lowTime)
-    {
-        MicroBitPin *p = getPin(pin);
-        
-        if (!p)
-            return;
-
-        #define PERIOD_US 22 // 38kHz carrier frequency period in microseconds
-        #define HALF_PERIOD_US (PERIOD_US / 2)
-
-        uint16_t highPeriods = highTime / PERIOD_US;
-    
-        while(highPeriods-- > 0){
-            p->setDigitalValue(1);
-            sleep_us(PERIOD_US);
-            p->setDigitalValue(0);
-            sleep_us(PERIOD_US);
-        }
-
-        sleep_us(lowTime);
-
-    }
 
     /*
-     * Send an IR bit using PWM carrier frequency (38kHz)
+     * Send an IR bit using PWM carrier frequency (38kHz). This is the
+     * standard way to send IR signals, but on Microbit, the timing can be
+     * affected by reading other analog pins; for instance, reading from a joystick
+     * will cause the timing of all subsequent IR signals to be off.
      * @param pin the output pin
      * @param highMicros microseconds to send carrier signal
      * @param lowMicros microseconds to send no signal
      */
-    //%
-    void sendIrBit(MicroBitPin *p, int16_t highTime, int16_t lowTime)
-    {
 
-       
+    inline void sendIrBitAnalog(MicroBitPin *p, int16_t highTime, int16_t lowTime)
+    {
+  
         if (!p)
             return;
 
         // Send carrier signal (50% duty cycle = 511)
+        __disable_irq();
         p->setAnalogValue(511);
         sleep_us(highTime);
 
         // Turn off carrier
         p->setAnalogValue(0);
         sleep_us(lowTime);
+        __enable_irq();
     }
+
+
+    /** Calibrate the timing by determining how much time per loop we spend
+     * doing things that are not sleeping
+     */
+    //%
+    float calibrate(){
+        MicroBitPin *p = getPin(MICROBIT_ID_IO_P0);
+        uint16_t count = 10000;
+        uint32_t start = system_timer_current_time_us();
+        
+
+        __disable_irq();
+        while(count > 0){
+            p->setDigitalValue(1);
+            sleep_us(1);
+            p->setDigitalValue(0);
+            sleep_us(1);
+            count -= 1;
+        }
+        __enable_irq();
+
+        uint32_t end = system_timer_current_time_us();
+
+        float elapsed = (end - start); // Convert to milliseconds
+        elapsed -= (count * 2); // Subtract the time spent waiting
+
+        return elapsed / count;
+    }
+
+    /* Send an IR bit using digital output, which doesn't have the timing problems of
+    * SendIrBitAnalog */
+    inline void sendIrBitDigital(MicroBitPin *p, int highTime, int lowTime)
+    {
+        /* We're allowing for different on and off half periods to more
+        finely tune the timing.  */
+        #define PERIOD_US 24 // 26 == 38kHz carrier frequency period in microseconds
+        #define ON_HALF_PERIOD 13
+        #define OFF_HALF_PERIOD (PERIOD_US - ON_HALF_PERIOD) // 12us is half of the 25us period
+        /* The high time portion, where we are togglinh at about 38kHz,
+        * should start and end with a 1, so the 0 portion of the high timne
+        * portion is moved into the low time potion */
+
+        highTime += ON_HALF_PERIOD; // Adjust high time to exclude the last half period
+        lowTime -= ON_HALF_PERIOD; // Adjust low time to include the last half period
+
+        int16_t sHighTime = (int16_t)highTime; // Because it will go negative.
+
+        __disable_irq();
+        while(sHighTime > 0){
+            p->setDigitalValue(1);
+            sleep_us(ON_HALF_PERIOD);
+            p->setDigitalValue(0);
+            sleep_us(OFF_HALF_PERIOD);
+            sHighTime -= PERIOD_US;
+        }
+        __enable_irq();
+
+        sleep_us(lowTime);
+      
+        
+    }
+    
+    inline void sendIrBit(MicroBitPin *p, int highTime, int lowTime){
+        //sendIrBitAnalog(p, highTime, lowTime);
+        sendIrBitDigital(p, highTime, lowTime);
+    }
+
+    /** Send an IR bit using analog output */
+    //%
+    void sendIrBitAnalogPn(int32_t pin, int32_t highTime, int32_t lowTime){
+        MicroBitPin *p = getPin(pin);
+        p->setAnalogPeriodUs(26);
+
+        sendIrBitAnalog(p, highTime, lowTime);
+
+    }
+
+    /** Send an IR bit using digital output */
+    //%
+    void sendIrBitDigitalPn(int32_t pin, int32_t highTime, int32_t lowTime){
+        MicroBitPin *p = getPin(pin);
+
+        sendIrBitDigital(p, highTime, lowTime);
+
+    }
+
+    
 
     inline void sendIrByte(MicroBitPin *p, uint8_t b)
     {
@@ -106,27 +184,22 @@ namespace leagueir
   
     }
 
-    /*
+    /** 
      * Send an NEC format IR command. 
-     * */
-
+     */
     //%
-    void sendIrAddressCommand(int pin, uint16_t address, uint16_t command)
+    void sendIrAddressCommand(int32_t pin, int32_t address, int32_t command)
     {
 
         // NEC protocol timing (all in microseconds)
 
+        uint16_t uAddress = (uint16_t)address;
+        uint16_t uCommand = (uint16_t)command;
 
         MicroBitPin *p = getPin(pin);
         
         // Set up 38kHz carrier (period = 26us)
         p->setAnalogPeriodUs(26);
-
-        // Force the re-allocation of the DAC/ADC hardware to this
-        // pin before the timing becomes important.
-        //p->setAnalogValue(0);
-
-        //p->obtainAnalogChannel();
 
         if (!p) {
             return;
@@ -136,19 +209,24 @@ namespace leagueir
 
         sendIrBit(p, AGC_MARK, AGC_SPACE);
 
-        sendIrWord(p, address);
-        sendIrWord(p, command);
+        sendIrWord(p, uAddress);
+        sendIrWord(p, uCommand);
 
         // Send final stop bit
         sendIrBit(p, STOP_BIT, 10000);
     }
 
-    //% 
-    void sendIrCode(int pin, uint32_t code){
+    /** Send an IR code using the specified pin */
+    //%
+    void sendIrCode(int32_t pin, int32_t code){
+
+        uint32_t uCode = (uint32_t)code;
+
         sendIrAddressCommand(pin, 
-            (code >> 16) & 0xFFFF, // Extract address (upper 16 bits)
-            code & 0xFFFF);       // Extract command (lower 16 bits)
+            (uCode >> 16) & 0xFFFF, // Extract address (upper 16 bits)
+            uCode & 0xFFFF);       // Extract command (lower 16 bits)
     }
+
 
     /*
      * Read a pin, inverting the result, because the IR module inverts the signal
@@ -176,10 +254,9 @@ namespace leagueir
         return system_timer_current_time_us() - startTime;
     }
 
-    /*
-     * Time one pulse*/
+    /** Time one pulse */
     //%
-    int timePulse(int pin, int state, uint16_t timeout)
+    int timePulse(int32_t pin, int32_t state, int32_t timeout)
     {
 
         MicroBitPin *p = getPin(pin);

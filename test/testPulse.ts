@@ -14,14 +14,29 @@ namespace irtest {
 
     export function testTimedBit() {
 
-        while (true) {
-            pins.digitalWritePin(DigitalPin.P1, 1);
-            leagueir.sendTimedPulses(0, 500, 750);
-            pins.digitalWritePin(DigitalPin.P1, 0);
-            leagueir.sendTimedPulses(0, 750, 500)
-
-        }
+        
+        control.runInParallel(() => {
+  
+            while (true) {
+                //leagueir.sendIrAddressCommand(DigitalPin.P1, 0x1234, 0xABCD);
+                
+                leagueir.sendIrBitAnalog(AnalogPin.P0, 500, 750);
+                leagueir.sendIrBitAnalog(AnalogPin.P0, 750, 500);
+                leagueir.sendIrBitDigital(DigitalPin.P1, 500, 750);
+                leagueir.sendIrBitDigital(DigitalPin.P1, 750, 500);
+                //leagueir.sendIrBit(0, 500, 750);
+            }
+        });
 
     }
+
+    export function testCalibrate() {
+        
+        while(true) {
+            serial.writeLine("Calibrate " + leagueir.calibrate());
+            pause(1000);
+        }
+
+    } 
 
 }

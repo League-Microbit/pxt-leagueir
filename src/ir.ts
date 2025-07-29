@@ -263,8 +263,13 @@ namespace leagueir {
     }
 
 
-    //% shim=leagueir::sendTimedPulses
-    export function sendTimedPulses(pin: number, highTime: number, lowTime: number): void {
+    //% shim=leagueir::sendIrBitDigitalPn
+    export function sendIrBitDigital(pin: number, highTime: number, lowTime: number): void {
+
+    }
+
+    //% shim=leagueir::sendIrBitAnalogPn
+    export function sendIrBitAnalog(pin: number, highTime: number, lowTime: number): void {
 
     }
 
@@ -277,6 +282,11 @@ namespace leagueir {
     //% shim=leagueir::sendIrCode
     export function sendIrCode(pin: number, code: number): void {
         
+    }
+
+    //% shim=leagueir::calibrate
+    export function calibrate(): number {
+        return 0;
     }
 
 
