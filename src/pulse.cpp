@@ -70,7 +70,7 @@ namespace leagueir
         if (!p)
             return;
 
-        lowTime += (highTime - MARK_PERIOD);
+        lowTime += highTime;
 
         __disable_irq();
         uint32_t start = system_timer_current_time_us();
