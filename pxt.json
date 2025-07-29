@@ -35,17 +35,5 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/ericbusboom/pxt-demo"
-    },
-    "yotta": {
-        "config": {
-            "microbit-dal": {
-                "bluetooth": {
-                    "enabled": "0"
-                }
-            }
-        }
-    },
-    "microbit": {
-        "bluetooth": "off"
     }
 }
