@@ -30,22 +30,26 @@ namespace leagueir
     // const int16_t AGC_MARK = 9000 ;  // 9ms AGC burst +300 to fix timing error
     // const int16_t AGC_SPACE = 4500 ; // 4.5ms space +300 to fix timing error
     // const int16_t BIT_MARK = 560; // 560us mark for all bits
-    // const int16_t ONE_BIT = 2250;  // total length of a 1 bit
+    // const int16_t ONE_BIT = 2250;  // total length of a 1 bit )
     // const int16_t ZERO_BIT = 1120; // total length of a 0 bit
-    // const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
-    // const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
+    // const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0' (560us)
+    // const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1' (1.69ms)
     // const int16_t STOP_BIT = 560; // Final 560us mark
 
     // Adsjusted for sendIrBitDigital
     const int16_t MARK_PERIOD = 26; // 38kHz carrier frequency period in microseconds
-    const int16_t AGC_MARK = 9000;  // 9ms AGC burst 
-    const int16_t AGC_SPACE = 4500; // 4.5ms space 
-    const int16_t BIT_MARK = 560; // 560us mark for all bits
+    const int16_t AGC_MARK = 9000  + (MARK_PERIOD/2);  // 9ms AGC burst
+    const int16_t AGC_SPACE = 4500 - (MARK_PERIOD/2); // 4.5ms space
+
     const int16_t ONE_BIT = 2250;  // total length of a 1 bit
-    const int16_t ZERO_BIT = 1120; // total length of a 0 bit
-    const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
-    const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
-    const int16_t STOP_BIT = 560; // Final 560us mark
+    const int16_t ZERO_BIT = 1120 ; // total length of a 0 bit
+
+    const int16_t BIT_MARK = 560 + (MARK_PERIOD/2); // 560us mark for all bits
+ 
+    const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK - (MARK_PERIOD/2); // 560us space for '0'
+    const int16_t ONE_SPACE = ONE_BIT - BIT_MARK - (MARK_PERIOD/2);   // 1.69ms space for '1'
+
+    const int16_t STOP_MARK = 560; // Final 560us mark
 
     inline void busy_wait_us(uint32_t us) {
         uint32_t start = system_timer_current_time_us();
@@ -66,25 +70,18 @@ namespace leagueir
 
     inline void sendIrBitAnalog(MicroBitPin *p, int16_t highTime, int16_t lowTime)
     {
-  
-        if (!p)
-            return;
 
-        lowTime += highTime;
-
-        __disable_irq();
         uint32_t start = system_timer_current_time_us();
         p->setAnalogValue(511); // Send carrier signal (50% duty cycle = 511)
 
         while (system_timer_current_time_us() - start < (uint32_t)highTime)
             ;
 
-        // Turn off carrier
-        p->setAnalogValue(0);
+        start += highTime;
+        p->setAnalogValue(0); // Turn off carrier
         while (system_timer_current_time_us() - start < (uint32_t)lowTime)
             ;
 
-        __enable_irq();
     }
 
 
@@ -192,10 +189,8 @@ namespace leagueir
         MicroBitPin *p = getPin(pin);
 
         sendIrBitDigital(p, highTime, lowTime);
-
     }
 
-    
 
     /**
      * Send a byte as IR, LSB first.
@@ -204,19 +199,17 @@ namespace leagueir
      */
     inline void sendIrByte(MicroBitPin *p, uint8_t b)
     {
-        if (!p)
-            return;
 
         // Send each bit of the byte
         for (int i = 0; i < 8; i++)
         {
             if (b & (1 << i))
             {
-                sendIrBit(p, BIT_MARK, ONE_SPACE); // '1' bit: 560us ON + 1690us OFF
+                sendIrBitAnalog(p, BIT_MARK, ONE_SPACE); // '1' bit: 560us ON + 1690us OFF
             }
             else
             {
-                sendIrBit(p, BIT_MARK, ZERO_SPACE); // '0' bit: 560us ON + 560us OFF
+                sendIrBitAnalog(p, BIT_MARK, ZERO_SPACE); // '0' bit: 560us ON + 560us OFF
             }
         }
     }
@@ -226,15 +219,10 @@ namespace leagueir
      * @param p Pointer to the output MicroBitPin
      * @param word 16-bit word to send
      */
-    void sendIrWord(MicroBitPin *p, uint16_t word)
+    inline void sendIrWord(MicroBitPin *p, uint16_t word)
     {
-        if (!p)
-            return;
-
-        // Send each byte of the word
         sendIrByte(p, word & 0xFF);        // Low byte
         sendIrByte(p, (word >> 8) & 0xFF); // High byte
-  
     }
 
     /**
@@ -262,14 +250,15 @@ namespace leagueir
         }
 
         // Send AGC header
-
+        __disable_irq();
         sendIrBit(p, AGC_MARK, AGC_SPACE);
 
         sendIrWord(p, uAddress);
         sendIrWord(p, uCommand);
 
         // Send final stop bit
-        sendIrBit(p, STOP_BIT, 10000);
+        sendIrBit(p, STOP_MARK, STOP_MARK);
+        __enable_irq();
     }
 
     /**
