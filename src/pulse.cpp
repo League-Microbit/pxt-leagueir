@@ -37,6 +37,7 @@ namespace leagueir
     // const int16_t STOP_BIT = 560; // Final 560us mark
 
     // Adsjusted for sendIrBitDigital
+    const int16_t MARK_PERIOD = 26; // 38kHz carrier frequency period in microseconds
     const int16_t AGC_MARK = 9000;  // 9ms AGC burst 
     const int16_t AGC_SPACE = 4500; // 4.5ms space 
     const int16_t BIT_MARK = 560; // 560us mark for all bits
@@ -44,7 +45,7 @@ namespace leagueir
     const int16_t ZERO_BIT = 1120; // total length of a 0 bit
     const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
     const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
-    const int16_t STOP_BIT = 560+10; // Final 560us mark
+    const int16_t STOP_BIT = 560; // Final 560us mark
 
     inline void busy_wait_us(uint32_t us) {
         uint32_t start = system_timer_current_time_us();
@@ -69,14 +70,20 @@ namespace leagueir
         if (!p)
             return;
 
-        // Send carrier signal (50% duty cycle = 511)
+        lowTime += (highTime - MARK_PERIOD);
+
         __disable_irq();
-        p->setAnalogValue(511);
-        busy_wait_us(highTime);
+        uint32_t start = system_timer_current_time_us();
+        p->setAnalogValue(511); // Send carrier signal (50% duty cycle = 511)
+
+        while (system_timer_current_time_us() - start < (uint32_t)highTime)
+            ;
 
         // Turn off carrier
         p->setAnalogValue(0);
-        busy_wait_us(lowTime);
+        while (system_timer_current_time_us() - start < (uint32_t)lowTime)
+            ;
+
         __enable_irq();
     }
 
@@ -168,7 +175,7 @@ namespace leagueir
     //%
     void sendIrBitAnalogPn(int32_t pin, int32_t highTime, int32_t lowTime){
         MicroBitPin *p = getPin(pin);
-        p->setAnalogPeriodUs(26);
+        p->setAnalogPeriodUs(MARK_PERIOD);
 
         sendIrBitAnalog(p, highTime, lowTime);
 
