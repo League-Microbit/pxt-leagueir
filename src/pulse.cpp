@@ -46,6 +46,12 @@ namespace leagueir
     const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
     const int16_t STOP_BIT = 560+10; // Final 560us mark
 
+    inline void busy_wait_us(uint32_t us) {
+        uint32_t start = system_timer_current_time_us();
+        while (system_timer_current_time_us() - start < us) {
+            
+        }
+    }
 
     /*
      * Send an IR bit using PWM carrier frequency (38kHz). This is the
@@ -66,11 +72,11 @@ namespace leagueir
         // Send carrier signal (50% duty cycle = 511)
         __disable_irq();
         p->setAnalogValue(511);
-        sleep_us(highTime);
+        busy_wait_us(highTime);
 
         // Turn off carrier
         p->setAnalogValue(0);
-        sleep_us(lowTime);
+        busy_wait_us(lowTime);
         __enable_irq();
     }
 
@@ -106,6 +112,8 @@ namespace leagueir
         return calibrateTime; // Return the calibration time
     }
 
+
+
     /**
      * Send an IR bit using digital output, which doesn't have the timing problems of sendIrBitAnalog.
      * @param p Pointer to the output MicroBitPin
@@ -126,21 +134,18 @@ namespace leagueir
         highTime += ON_HALF_PERIOD; // Adjust high time to exclude the last half period
         lowTime -= ON_HALF_PERIOD; // Adjust low time to include the last half period
 
-        uint32_t sHighTime = (uint32_t)highTime; // Because it will go negative.
-
         __disable_irq();
         uint32_t start = system_timer_current_time_us();
-        while(system_timer_current_time_us() - start < sHighTime){
+        while(system_timer_current_time_us() - start < (uint32_t)highTime){
             p->setDigitalValue(1);
-            sleep_us(ON_HALF_PERIOD);
+            busy_wait_us(ON_HALF_PERIOD);
             p->setDigitalValue(0);
-            sleep_us(OFF_HALF_PERIOD);
+            busy_wait_us(OFF_HALF_PERIOD);
         }
         __enable_irq();
 
         sleep_us(lowTime);
       
-        
     }
     
     /**
@@ -150,8 +155,8 @@ namespace leagueir
      * @param lowTime Microseconds to send low signal
      */
     inline void sendIrBit(MicroBitPin *p, int highTime, int lowTime){
-        //sendIrBitAnalog(p, highTime, lowTime);
-        sendIrBitDigital(p, highTime, lowTime);
+        sendIrBitAnalog(p, highTime, lowTime);
+        //sendIrBitDigital(p, highTime, lowTime);
     }
 
     /**
