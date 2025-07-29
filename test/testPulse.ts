@@ -33,7 +33,7 @@ namespace irtest {
     export function testCalibrate() {
         
         while(true) {
-            serial.writeLine("Calibrate " + leagueir.calibrate());
+            serial.writeLine("Calibrate " + leagueir.calibrate_cpp(DigitalPin.P0));
             pause(1000);
         }
 

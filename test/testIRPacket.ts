@@ -47,7 +47,7 @@ namespace irtest {
             let command = (channel << 8) | group;
             i++;
             basic.showIcon(IconNames.Target);
-            leagueir.sendIrAddressCommand(DigitalPin.P8, leagueir.Address.RadioChannel, command);
+            leagueir.sendIrAddressCommand_cpp(DigitalPin.P8, leagueir.Address.RadioChannel, command);
             basic.clearScreen();
             basic.pause(600);
     
@@ -77,7 +77,7 @@ namespace irtest {
 
     export function sendIRRadioMessage(pin: DigitalPin, channel: number, group: number): void {
         let command = (channel << 8) | group;
-        leagueir.sendIrAddressCommand(pin, leagueir.Address.RadioChannel, command);
+        leagueir.sendIrAddressCommand_cpp(pin, leagueir.Address.RadioChannel, command);
     }
 
     export function recieveIrMessages(pin: DigitalPin) {

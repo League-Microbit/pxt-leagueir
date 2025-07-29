@@ -24,7 +24,7 @@ namespace irtest {
     export function testSendNecCode() {
 
         while (true) {
-            leagueir.sendIrAddressCommand(DigitalPin.P8, 0x1234, 0xABCD);
+            leagueir.sendIrAddressCommand_cpp(DigitalPin.P8, 0x1234, 0xABCD);
             pause(800);
         }
     }

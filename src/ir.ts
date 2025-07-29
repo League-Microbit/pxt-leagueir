@@ -72,10 +72,39 @@ namespace leagueir {
     /*
     */
     //% shim=leagueir::timePulse
-    export function timePulse(pin: number, state: number, timeout: number): number {
+    export function timePulse_cpp(pin: number, state: number, timeout: number): number {
         // Simulator implementation would go here
         return 0;
     }
+
+
+    //% shim=leagueir::sendIrBitDigitalPn
+    export function sendIrBitDigital(pin: number, highTime: number, lowTime: number): void {
+
+    }
+
+    //% shim=leagueir::sendIrBitAnalogPn
+    export function sendIrBitAnalog(pin: number, highTime: number, lowTime: number): void {
+
+    }
+
+
+    //% shim=leagueir::sendIrAddressCommand
+    export function sendIrAddressCommand_cpp(pin: number, address: number, command: number): void {
+        
+    }
+
+    //% shim=leagueir::sendIrCode
+    export function sendIrCode_cpp(pin: number, code: number): void {
+        
+    }
+
+    //% shim=leagueir::calibrate
+    export function calibrate_cpp(pin: number): number {
+        return 0;
+    }
+
+
 
     /**
      * Read the AGC header from the IR signal
@@ -263,33 +292,6 @@ namespace leagueir {
     }
 
 
-    //% shim=leagueir::sendIrBitDigitalPn
-    export function sendIrBitDigital(pin: number, highTime: number, lowTime: number): void {
-
-    }
-
-    //% shim=leagueir::sendIrBitAnalogPn
-    export function sendIrBitAnalog(pin: number, highTime: number, lowTime: number): void {
-
-    }
-
-
-    //% shim=leagueir::sendIrAddressCommand
-    export function sendIrAddressCommand(pin: number, address: number, command: number): void {
-        
-    }
-
-    //% shim=leagueir::sendIrCode
-    export function sendIrCode(pin: number, code: number): void {
-        
-    }
-
-    //% shim=leagueir::calibrate
-    export function calibrate(): number {
-        return 0;
-    }
-
-
 
     /**
      * Send a custom IR packet with id, status, command, and value
@@ -326,7 +328,7 @@ namespace leagueir {
         
         // Send the packet
         serial.writeLine("Sending IR Packet: " + irlib.toHex(packet));
-        leagueir.sendIrCode(pin, packet);
+        leagueir.sendIrCode_cpp(pin, packet);
     }
 
 

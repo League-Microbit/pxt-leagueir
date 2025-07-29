@@ -17,16 +17,24 @@ using namespace pxt;
 namespace leagueir
 {
 
-    /* Adjusted for sendIrBitAnalog 
-    const int16_t AGC_MARK = 9000 + 300;  // 9ms AGC burst +300 to fix timing error
-    const int16_t AGC_SPACE = 4500 + 100; // 4.5ms space +300 to fix timing error
-    const int16_t BIT_MARK = 560; // 560us mark for all bits
-    const int16_t ONE_BIT = 2250;  // total length of a 1 bit
-    const int16_t ZERO_BIT = 1120; // total length of a 0 bit
-    const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
-    const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
-    const int16_t STOP_BIT = 560; // Final 560us mark
-    */
+
+    int calibrateTime = 0; // Global variable to store the calibration time
+
+    /**
+     * Adjusted for sendIrBitAnalog
+     * @internal
+     * @remarks
+     * These are alternative timing constants for analog IR bit sending.
+     * Uncomment and use if needed for analog timing correction.
+     */
+    // const int16_t AGC_MARK = 9000 + 300;  // 9ms AGC burst +300 to fix timing error
+    // const int16_t AGC_SPACE = 4500 + 100; // 4.5ms space +300 to fix timing error
+    // const int16_t BIT_MARK = 560; // 560us mark for all bits
+    // const int16_t ONE_BIT = 2250;  // total length of a 1 bit
+    // const int16_t ZERO_BIT = 1120; // total length of a 0 bit
+    // const int16_t ZERO_SPACE = ZERO_BIT - BIT_MARK; // 560us space for '0'
+    // const int16_t ONE_SPACE = ONE_BIT - BIT_MARK;   // 1.69ms space for '1'
+    // const int16_t STOP_BIT = 560; // Final 560us mark
 
     // Adsjusted for sendIrBitDigital
     const int16_t AGC_MARK = 9000;  // 9ms AGC burst 
@@ -71,37 +79,45 @@ namespace leagueir
      * doing things that are not sleeping
      */
     //%
-    float calibrate(){
-        MicroBitPin *p = getPin(MICROBIT_ID_IO_P0);
-        uint16_t count = 10000;
-        uint32_t start = system_timer_current_time_us();
-        
+    int calibrate(int pin){
 
-        __disable_irq();
+        MicroBitPin *p = getPin(pin);
+        #define CALIBRATE_COUNT 500
+        #define SLEEP_TIME_US 13 // Time to sleep in microseconds
+        uint16_t count = CALIBRATE_COUNT;
+
+         __disable_irq();
+        uint32_t start = system_timer_current_time_us();
         while(count > 0){
             p->setDigitalValue(1);
-            sleep_us(1);
+            sleep_us(SLEEP_TIME_US);
             p->setDigitalValue(0);
-            sleep_us(1);
+            sleep_us(SLEEP_TIME_US);
             count -= 1;
         }
+         uint32_t end = system_timer_current_time_us();
         __enable_irq();
 
-        uint32_t end = system_timer_current_time_us();
 
-        float elapsed = (end - start); // Convert to milliseconds
-        elapsed -= (count * 2); // Subtract the time spent waiting
+        float elapsed = (end - start); 
+        elapsed -= (CALIBRATE_COUNT * 2 * SLEEP_TIME_US); // Subtract the time spent waiting
 
-        return elapsed / count;
+        calibrateTime = (int)(elapsed / CALIBRATE_COUNT); // Store the calibration time
+
+        return calibrateTime; // Return the calibration time
     }
 
-    /* Send an IR bit using digital output, which doesn't have the timing problems of
-    * SendIrBitAnalog */
+    /**
+     * Send an IR bit using digital output, which doesn't have the timing problems of sendIrBitAnalog.
+     * @param p Pointer to the output MicroBitPin
+     * @param highTime Microseconds to send high signal
+     * @param lowTime Microseconds to send low signal
+     */
     inline void sendIrBitDigital(MicroBitPin *p, int highTime, int lowTime)
     {
         /* We're allowing for different on and off half periods to more
         finely tune the timing.  */
-        #define PERIOD_US 24 // 26 == 38kHz carrier frequency period in microseconds
+        #define PERIOD_US 26 // 26 == 38kHz carrier frequency period in microseconds
         #define ON_HALF_PERIOD 13
         #define OFF_HALF_PERIOD (PERIOD_US - ON_HALF_PERIOD) // 12us is half of the 25us period
         /* The high time portion, where we are togglinh at about 38kHz,
@@ -111,6 +127,9 @@ namespace leagueir
         highTime += ON_HALF_PERIOD; // Adjust high time to exclude the last half period
         lowTime -= ON_HALF_PERIOD; // Adjust low time to include the last half period
 
+        
+        int cPeriod = PERIOD_US + calibrateTime; // Adjust period based on calibration time
+
         int16_t sHighTime = (int16_t)highTime; // Because it will go negative.
 
         __disable_irq();
@@ -119,7 +138,7 @@ namespace leagueir
             sleep_us(ON_HALF_PERIOD);
             p->setDigitalValue(0);
             sleep_us(OFF_HALF_PERIOD);
-            sHighTime -= PERIOD_US;
+            sHighTime -= cPeriod;
         }
         __enable_irq();
 
@@ -128,12 +147,23 @@ namespace leagueir
         
     }
     
+    /**
+     * Send an IR bit using the default method (currently digital).
+     * @param p Pointer to the output MicroBitPin
+     * @param highTime Microseconds to send high signal
+     * @param lowTime Microseconds to send low signal
+     */
     inline void sendIrBit(MicroBitPin *p, int highTime, int lowTime){
         //sendIrBitAnalog(p, highTime, lowTime);
         sendIrBitDigital(p, highTime, lowTime);
     }
 
-    /** Send an IR bit using analog output */
+    /**
+     * Send an IR bit using analog output.
+     * @param pin The pin number to send on
+     * @param highTime Microseconds to send carrier signal
+     * @param lowTime Microseconds to send no signal
+     */
     //%
     void sendIrBitAnalogPn(int32_t pin, int32_t highTime, int32_t lowTime){
         MicroBitPin *p = getPin(pin);
@@ -143,7 +173,12 @@ namespace leagueir
 
     }
 
-    /** Send an IR bit using digital output */
+    /**
+     * Send an IR bit using digital output.
+     * @param pin The pin number to send on
+     * @param highTime Microseconds to send high signal
+     * @param lowTime Microseconds to send low signal
+     */
     //%
     void sendIrBitDigitalPn(int32_t pin, int32_t highTime, int32_t lowTime){
         MicroBitPin *p = getPin(pin);
@@ -154,6 +189,11 @@ namespace leagueir
 
     
 
+    /**
+     * Send a byte as IR, LSB first.
+     * @param p Pointer to the output MicroBitPin
+     * @param b Byte to send
+     */
     inline void sendIrByte(MicroBitPin *p, uint8_t b)
     {
         if (!p)
@@ -173,6 +213,11 @@ namespace leagueir
         }
     }
 
+    /**
+     * Send a 16-bit word as IR, LSB first.
+     * @param p Pointer to the output MicroBitPin
+     * @param word 16-bit word to send
+     */
     void sendIrWord(MicroBitPin *p, uint16_t word)
     {
         if (!p)
@@ -184,8 +229,11 @@ namespace leagueir
   
     }
 
-    /** 
-     * Send an NEC format IR command. 
+    /**
+     * Send an NEC format IR command.
+     * @param pin The pin number to send on
+     * @param address 16-bit address
+     * @param command 16-bit command
      */
     //%
     void sendIrAddressCommand(int32_t pin, int32_t address, int32_t command)
@@ -216,7 +264,11 @@ namespace leagueir
         sendIrBit(p, STOP_BIT, 10000);
     }
 
-    /** Send an IR code using the specified pin */
+    /**
+     * Send an IR code using the specified pin.
+     * @param pin The pin number to send on
+     * @param code 32-bit code to send (upper 16 bits = address, lower 16 bits = command)
+     */
     //%
     void sendIrCode(int32_t pin, int32_t code){
 
@@ -228,8 +280,10 @@ namespace leagueir
     }
 
 
-    /*
-     * Read a pin, inverting the result, because the IR module inverts the signal
+    /**
+     * Read a pin, inverting the result, because the IR module inverts the signal.
+     * @param p Pointer to the input MicroBitPin
+     * @returns 1 if IR detected, 0 otherwise
      */
     inline int readPin(MicroBitPin *p)
     {
@@ -240,6 +294,13 @@ namespace leagueir
         return p->getDigitalValue() ? 0 : 1;
     }
 
+    /**
+     * Wait for the pin to reach a given state or timeout.
+     * @param p Pointer to the input MicroBitPin
+     * @param state Desired pin state (0 or 1)
+     * @param timeout Timeout in microseconds
+     * @returns Time waited in microseconds, or 0 if timed out
+     */
     inline int waitForPinState(MicroBitPin *p, int state, uint32_t timeout)
     {
         if (!p)
@@ -254,7 +315,13 @@ namespace leagueir
         return system_timer_current_time_us() - startTime;
     }
 
-    /** Time one pulse */
+    /**
+     * Time one pulse.
+     * @param pin The pin number to read from
+     * @param state The state to wait for (0 or 1)
+     * @param timeout Timeout in microseconds
+     * @returns Pulse duration in microseconds, or negative value on error
+     */
     //%
     int timePulse(int32_t pin, int32_t state, int32_t timeout)
     {
@@ -279,8 +346,12 @@ namespace leagueir
         return d;
     }
 
-    /* Scramble the input using MurmurHash3. This can sccrmable the bits of the 
-    * id of the Micro:bit, so we can use the last 12 for an id value. */
+    /**
+     * Scramble the input using MurmurHash3.
+     * This can scramble the bits of the id of the Micro:bit, so we can use the last 12 for an id value.
+     * @param k Input value to scramble
+     * @returns Scrambled value
+     */
     inline uint32_t murmur_32_scramble(uint32_t k) {
         k *= 0xcc9e2d51;
         k = (k << 15) | (k >> 17);  // rotate left 15
