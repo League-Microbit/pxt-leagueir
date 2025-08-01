@@ -71,7 +71,7 @@ namespace leagueir
      * @param lowMicros microseconds to send no signal
      */
 
-    inline void sendIrBitAnalog(MicroBitPin *p, int16_t highTime, int16_t lowTime)
+    inline void sendIrBit(MicroBitPin *p, int16_t highTime, int16_t lowTime)
     {
 
         uint32_t start = system_timer_current_time_us();
@@ -121,78 +121,9 @@ namespace leagueir
 
 
 
-    /**
-     * Send an IR bit using digital output, which doesn't have the timing problems of sendIrBitAnalog.
-     * @param p Pointer to the output MicroBitPin
-     * @param highTime Microseconds to send high signal
-     * @param lowTime Microseconds to send low signal
-     */
-    inline void sendIrBitDigital(MicroBitPin *p, int highTime, int lowTime)
-    {
-        /* We're allowing for different on and off half periods to more
-        finely tune the timing.  */
-        #define PERIOD_US 24 // 26 == 38kHz carrier frequency period in microseconds
-        #define ON_HALF_PERIOD 13
-        #define OFF_HALF_PERIOD (PERIOD_US - ON_HALF_PERIOD) // 12us is half of the 25us period
-        /* The high time portion, where we are toggling at about 38kHz,
-        * should start and end with a 1, so the 0 portion of the high timne
-        * portion is moved into the low time potion */
-
-        highTime += ON_HALF_PERIOD; // Adjust high time to exclude the last half period
-        lowTime -= ON_HALF_PERIOD; // Adjust low time to include the last half period
-
-        __disable_irq();
-        uint32_t start = system_timer_current_time_us();
-        while(system_timer_current_time_us() - start < (uint32_t)highTime){
-            p->setDigitalValue(1);
-            busy_wait_us(ON_HALF_PERIOD);
-            p->setDigitalValue(0);
-            busy_wait_us(OFF_HALF_PERIOD);
-        }
-        __enable_irq();
-
-        sleep_us(lowTime);
-      
-    }
+   
     
-    /**
-     * Send an IR bit using the default method (currently digital).
-     * @param p Pointer to the output MicroBitPin
-     * @param highTime Microseconds to send high signal
-     * @param lowTime Microseconds to send low signal
-     */
-    inline void sendIrBit(MicroBitPin *p, int highTime, int lowTime){
-        sendIrBitAnalog(p, highTime, lowTime);
-        //sendIrBitDigital(p, highTime, lowTime);
-    }
 
-    /**
-     * Send an IR bit using analog output.
-     * @param pin The pin number to send on
-     * @param highTime Microseconds to send carrier signal
-     * @param lowTime Microseconds to send no signal
-     */
-    //%
-    void sendIrBitAnalogPn(int32_t pin, int32_t highTime, int32_t lowTime){
-        MicroBitPin *p = getPin(pin);
-        p->setAnalogPeriodUs(MARK_PERIOD);
-
-        sendIrBitAnalog(p, highTime, lowTime);
-
-    }
-
-    /**
-     * Send an IR bit using digital output.
-     * @param pin The pin number to send on
-     * @param highTime Microseconds to send high signal
-     * @param lowTime Microseconds to send low signal
-     */
-    //%
-    void sendIrBitDigitalPn(int32_t pin, int32_t highTime, int32_t lowTime){
-        MicroBitPin *p = getPin(pin);
-
-        sendIrBitDigital(p, highTime, lowTime);
-    }
 
 
     /**
@@ -208,11 +139,11 @@ namespace leagueir
         {
             if (b & (1 << i))
             {
-                sendIrBitAnalog(p, BIT_MARK, ONE_SPACE); // '1' bit: 560us ON + 1690us OFF
+                sendIrBit(p, BIT_MARK, ONE_SPACE); // '1' bit: 560us ON + 1690us OFF
             }
             else
             {
-                sendIrBitAnalog(p, BIT_MARK, ZERO_SPACE); // '0' bit: 560us ON + 560us OFF
+                sendIrBit(p, BIT_MARK, ZERO_SPACE); // '0' bit: 560us ON + 560us OFF
             }
         }
     }

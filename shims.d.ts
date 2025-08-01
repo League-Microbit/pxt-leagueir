@@ -13,24 +13,6 @@
 declare namespace leagueir {
 
     /**
-     * Send an IR bit using analog output.
-     * @param pin The pin number to send on
-     * @param highTime Microseconds to send carrier signal
-     * @param lowTime Microseconds to send no signal
-     */
-    //% shim=leagueir::sendIrBitAnalogPn
-    function sendIrBitAnalogPn(pin: int32, highTime: int32, lowTime: int32): void;
-
-    /**
-     * Send an IR bit using digital output.
-     * @param pin The pin number to send on
-     * @param highTime Microseconds to send high signal
-     * @param lowTime Microseconds to send low signal
-     */
-    //% shim=leagueir::sendIrBitDigitalPn
-    function sendIrBitDigitalPn(pin: int32, highTime: int32, lowTime: int32): void;
-
-    /**
      * Send an NEC format IR command.
      * @param pin The pin number to send on
      * @param address 16-bit address

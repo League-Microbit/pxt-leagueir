@@ -35,11 +35,11 @@ namespace leagueir {
     const BIT_MARK = 560;                 // BIT MARK = 560µs
 
     const BIT_MARK_MAX = BIT_MARK + 300;   // BIT MARK MAX = 860µs
-    const BIT_MARK_MIN = BIT_MARK - 140;  // BIT MARK MIN = 420µs
+    const BIT_MARK_MIN = BIT_MARK - 200;  // BIT MARK MIN = 420µs
 
     const ZERO_SPACE = ZERO_BIT - BIT_MARK;       // ZERO SPACE = 560µs
     const ZERO_SPACE_MAX = ZERO_SPACE + 300;      // ZERO SPACE MAX = 860µs
-    const ZERO_SPACE_MIN = ZERO_SPACE - 170;      // ZERO SPACE MIN = 390µs
+    const ZERO_SPACE_MIN = ZERO_SPACE - 220;      // ZERO SPACE MIN = 390µs
 
     const ONE_SPACE = ONE_BIT - BIT_MARK;         // ONE SPACE = 1690µs
     const ONE_SPACE_MAX = ONE_SPACE + 150;        // ONE SPACE MAX = 1840µs
@@ -97,16 +97,6 @@ namespace leagueir {
         return 0;
     }
 
-
-    //% shim=leagueir::sendIrBitDigitalPn
-    export function sendIrBitDigital(pin: number, highTime: number, lowTime: number): void {
-
-    }
-
-    //% shim=leagueir::sendIrBitAnalogPn
-    export function sendIrBitAnalog(pin: number, highTime: number, lowTime: number): void {
-
-    }
 
 
     //% shim=leagueir::sendIrAddressCommand
