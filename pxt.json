@@ -16,7 +16,9 @@
         "enums.d.ts"
     ],
     "testFiles": [
-
+        "test/test.ts",
+        "test/testPulse.ts",
+        "test/testNec.ts"
     ],
     "public": true,
     "targetVersions": {

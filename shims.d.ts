@@ -12,12 +12,6 @@
 
 declare namespace leagueir {
 
-    /** Calibrate the timing by determining how much time per loop we spend
-     * doing things that are not sleeping
-     */
-    //% shim=leagueir::calibrate
-    function calibrate(pin: int32): int32;
-
     /**
      * Send an IR bit using analog output.
      * @param pin The pin number to send on

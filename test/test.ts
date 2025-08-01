@@ -15,3 +15,6 @@ irtest.testNextNecCode();
 //irtest.testTimedBit();
 
 //irtest.testCalibrate();
+
+//irtest.testPulseIn();
+

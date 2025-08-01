@@ -1,42 +1,42 @@
 namespace irtest {
 
 
-    export function testPulseTiming() {
-        // Toggle P8 at 38kHz (period ≈ 26.3us, half-period ≈ 13.16us)
-        const pin = DigitalPin.P0;
-        while (true) {
-            pins.digitalWritePin(pin, 1);
-            control.waitMicros(11);
-            pins.digitalWritePin(pin, 0);
-            control.waitMicros(11);
-        }
+    /* Classify a pulse base on the 1st and 99th percentile
+   * breaks from data collected by pulsetimes.py
+   *                     Lower   Upper
+   *     1 BIT_MARK        420     860
+   *     2 HEADER_MARK     8800    9200
+   *     3 HEADER_SPACE    4300    4600
+   *     4 ONE_SPACE       1100    1900
+   */
+    export function classifyPulse(pulse: number): number {
+        if (pulse >= 420 && pulse <= 860) return 3;  // BIT_MARK
+        if (pulse >= 1100 && pulse <= 1900) return 4; // ONE_SPACE
+        if (pulse >= 4300 && pulse <= 4600) return 2; // HEADER_SPACE
+        if (pulse >= 8800 && pulse <= 9200) return 1; // HEADER_MARK
+        
+        return 0; // Unknown
     }
 
-    export function testTimedBit() {
+    /** Create a code from the edge times
+     * Read the code by 2 at a time. The first two must be [1,2]
+     * The next 64 must be [3,4] for a 1 bit, or [3,3] for a 0 bit. The last one must be 3.
+     *
+     */
+    export function createCodeFromEdgeTimes(edgeTimes: number[]): number {
 
-        
-        control.runInParallel(() => {
-  
-            while (true) {
-                //leagueir.sendIrAddressCommand(DigitalPin.P1, 0x1234, 0xABCD);
-                
-                leagueir.sendIrBitAnalog(AnalogPin.P0, 500, 750);
-                leagueir.sendIrBitAnalog(AnalogPin.P0, 750, 500);
-                leagueir.sendIrBitDigital(DigitalPin.P1, 500, 750);
-                leagueir.sendIrBitDigital(DigitalPin.P1, 750, 500);
-                //leagueir.sendIrBit(0, 500, 750);
-            }
-        });
 
+        let code = 0
+        // Convert from little-endian to big-endian (reverse byte order)
+        code = ((code & 0xFF) << 24) |
+            ((code & 0xFF00) << 8) |
+            ((code & 0xFF0000) >> 8) |
+            ((code & 0xFF000000) >>> 24);
+
+        return code;
     }
 
-    export function testCalibrate() {
-        
-        while(true) {
-            serial.writeLine("Calibrate " + leagueir.calibrate_cpp(DigitalPin.P0));
-            pause(1000);
-        }
 
-    } 
+    
 
 }

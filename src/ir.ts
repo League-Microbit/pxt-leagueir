@@ -12,10 +12,10 @@
 
 * With radio and beacon on:
 
-    BIT_MARK         570   71     427     858
-    HEADER_MARK     9028   59    8908    9135
-    HEADER_SPACE    4491   53    4404    4592
-    ONE_SPACE       1669  105    1196    1837
+    BIT_MARK         570    71     427     858
+    AGC_MARK         9028   59     8908    9135
+    AGC_SPACE        4491   53     4404    4592
+    ONE_SPACE        1669   105    1196    1837
 
  */
 
@@ -34,18 +34,20 @@ namespace leagueir {
     const ZERO_BIT = 1120;                // ZERO BIT total = 1120µs
     const BIT_MARK = 560;                 // BIT MARK = 560µs
 
-    const BIT_MARK_MAX = BIT_MARK + 75;   // BIT MARK MAX = 635µs
-    const BIT_MARK_MIN = BIT_MARK - 120;  // BIT MARK MIN = 440µs
+    const BIT_MARK_MAX = BIT_MARK + 300;   // BIT MARK MAX = 860µs
+    const BIT_MARK_MIN = BIT_MARK - 140;  // BIT MARK MIN = 420µs
 
     const ZERO_SPACE = ZERO_BIT - BIT_MARK;       // ZERO SPACE = 560µs
-    const ZERO_SPACE_MAX = ZERO_SPACE + 150;      // ZERO SPACE MAX = 710µs
+    const ZERO_SPACE_MAX = ZERO_SPACE + 300;      // ZERO SPACE MAX = 860µs
     const ZERO_SPACE_MIN = ZERO_SPACE - 170;      // ZERO SPACE MIN = 390µs
 
     const ONE_SPACE = ONE_BIT - BIT_MARK;         // ONE SPACE = 1690µs
     const ONE_SPACE_MAX = ONE_SPACE + 150;        // ONE SPACE MAX = 1840µs
-    const ONE_SPACE_MIN = ONE_SPACE - 200;        // ONE SPACE MIN = 1490µs
+    const ONE_SPACE_MIN = ONE_SPACE - 470;        // ONE SPACE MIN = 1490µs
 
     const STOP_BIT = 560;                 // STOP BIT = 560µs
+    const STOP_BIT_MAX = STOP_BIT + 300;   // STOP BIT MAX = 760µs
+    const STOP_BIT_MIN = STOP_BIT - 140;   // STOP BIT MIN =
 
     // Constants for pin states
     const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
@@ -117,13 +119,6 @@ namespace leagueir {
         
     }
 
-    //% shim=leagueir::calibrate
-    export function calibrate_cpp(pin: number): number {
-        return 0;
-    }
-
-
-
     /**
      * Read the AGC header from the IR signal
      * @param pin the digital pin to read from
@@ -139,8 +134,9 @@ namespace leagueir {
             if (pulseTime > 0 && pulseTime > AGC_SPACE_MIN) {
                 return true;
             }
-        }
-
+            irError = "Invalid AGC space duration: " + pulseTime;
+        } 
+        irError = "Invalid AGC mark duration: " + pulseTime;
         return false;
 
     }
@@ -190,6 +186,7 @@ namespace leagueir {
 
         // Configure pins
         pins.setPull(pin, PinPullMode.PullUp); // Use pull-up resistor on the input pin
+        irError = ""; // Reset error message
 
         let startTime = input.runningTime();
 
@@ -199,6 +196,7 @@ namespace leagueir {
 
         while (true) {
 
+            irError = ""; // Reset error message
             if (input.runningTime() - startTime > timeout) {
                 irError = "Timeout waiting for NEC code";
                 return 0; // Timeout
@@ -233,8 +231,8 @@ namespace leagueir {
             n = (bytes[3] << 24) | (bytes[2] << 16) | (bytes[1] << 8) | bytes[0];
 
             // read the final stop bit
-            let pulseTime = timePulse(pin, 1, STOP_BIT + 200);
-            if (pulseTime < STOP_BIT - 200 || pulseTime > STOP_BIT + 200) {
+            let pulseTime = timePulse(pin, 1, STOP_BIT_MAX);
+            if (pulseTime < STOP_BIT_MIN || pulseTime > STOP_BIT_MAX) {
                 irError = "Invalid stop bit duration: " + pulseTime;
                 return 0;
             }

@@ -11,8 +11,8 @@ namespace irtest {
             } else {
                 basic.showIcon(IconNames.Sad);
             }
-            
-            serial.writeLine("Address: " + address + ", Command: " + command);
+
+            serial.writeLine("Address: " + irlib.toHex(address) + ", Command: " + irlib.toHex(command)+ " " + leagueir.irError);
             pause(100);
         }
 

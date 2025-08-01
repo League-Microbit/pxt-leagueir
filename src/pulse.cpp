@@ -10,7 +10,10 @@
 #include "pxt.h"
 #include <cstdint>
 #include <math.h>
-
+using std::uint32_t;
+using std::uint16_t;
+using std::int16_t;
+using std::int32_t;
 
 using namespace pxt;
 
@@ -88,7 +91,7 @@ namespace leagueir
     /** Calibrate the timing by determining how much time per loop we spend
      * doing things that are not sleeping
      */
-    //%
+
     int calibrate(int pin){
 
         MicroBitPin *p = getPin(pin);
@@ -284,9 +287,6 @@ namespace leagueir
      */
     inline int readPin(MicroBitPin *p)
     {
-        if (!p)
-            return 0;
-
         // Invert the reading, because IR receiver outputs LOW when it detects IR signal
         return p->getDigitalValue() ? 0 : 1;
     }
@@ -311,8 +311,8 @@ namespace leagueir
         }
         return system_timer_current_time_us() - startTime;
     }
-
-    /**
+    
+     /**
      * Time one pulse.
      * @param pin The pin number to read from
      * @param state The state to wait for (0 or 1)
@@ -343,17 +343,6 @@ namespace leagueir
         return d;
     }
 
-    /**
-     * Scramble the input using MurmurHash3.
-     * This can scramble the bits of the id of the Micro:bit, so we can use the last 12 for an id value.
-     * @param k Input value to scramble
-     * @returns Scrambled value
-     */
-    inline uint32_t murmur_32_scramble(uint32_t k) {
-        k *= 0xcc9e2d51;
-        k = (k << 15) | (k >> 17);  // rotate left 15
-        k *= 0x1b873593;
-        return k;
-    }
+
 
 }
