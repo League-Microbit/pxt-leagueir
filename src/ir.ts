@@ -1,5 +1,14 @@
 
-
+/**
+ * With radio off
+ * 
+ *                  mean  std      p01      p99
+    category                                    
+    BIT_MARK          560   40      500      640
+    HEADER_MARK      9020   20     8990     9040
+    HEADER_SPACE     4500   20     4470     4520
+    ONE_SPACE        1670   90     1200     1770
+ */
 
 
 namespace leagueir {

@@ -16,10 +16,7 @@
         "enums.d.ts"
     ],
     "testFiles": [
-        "test/test.ts",
-        "test/testIRPacket.ts",
-        "test/testNec.ts",
-        "test/testPulse.ts"
+
     ],
     "public": true,
     "targetVersions": {
