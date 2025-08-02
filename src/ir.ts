@@ -52,8 +52,8 @@ namespace leagueir {
      * @param pin The digital pin to listen on.
      * @param handler The function to call when an IR signal is received.
      */
-    //% block="leagueir_onNecReceived" block="On IR signal received on pin %pin into address %address command %command"
-    //% 
+    //% block="On IR signal received on pin %pin"
+    //% draggableParameters="reporter"
     export function onNecReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
             while (true) {
