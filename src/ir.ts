@@ -19,14 +19,20 @@
 
  */
 
-
+//% color="#FF6600" weight=100
+//% icon="\uf1eb"  block="LeagueIR"
 namespace leagueir {
 
 
 
-
- 
-
+    /**
+     * Reads a NEC IR code from the specified pin.
+     * 
+     * @param pin The digital pin to read from.
+     * @param timeout Optional timeout in milliseconds to wait for a signal.
+     * @returns A 32-bit number representing the NEC code.
+    */
+    //% block="leagueir_readNecAddressCommand" block="Read IR signal address and command from pin %pin"
     //% 
     export function readNecAddressCommand(pin: DigitalPin, timeout?: number): [number, number] {
         
@@ -41,6 +47,7 @@ namespace leagueir {
         return [address, command];
     }
 
+    //% block="leagueir_onNecReceived" block="On IR signal received on pin %pin into address %address command %command"
     //% 
     export function onNecReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
@@ -56,7 +63,6 @@ namespace leagueir {
             }
         });
     }
-
 
 
 
