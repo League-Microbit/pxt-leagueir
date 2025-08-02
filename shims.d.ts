@@ -13,6 +13,19 @@
 declare namespace leagueir {
 
     /**
+     * Get the last IR error message
+     * @returns the error string, or empty string if no error
+     */
+    //% shim=leagueir::getIrError
+    function getIrError(): string;
+
+    /**
+     * Clear the IR error message
+     */
+    //% shim=leagueir::clearIrError
+    function clearIrError(): void;
+
+    /**
      * Send an NEC format IR command.
      * @param pin The pin number to send on
      * @param address 16-bit address
@@ -28,16 +41,6 @@ declare namespace leagueir {
      */
     //% shim=leagueir::sendIrCode
     function sendIrCode(pin: int32, code: int32): void;
-
-    /**
-     * Time one pulse.
-     * @param pin The pin number to read from
-     * @param state The state to wait for (0 or 1)
-     * @param timeout Timeout in microseconds
-     * @returns Pulse duration in microseconds, or negative value on error
-     */
-    //% shim=leagueir::timePulse
-    function timePulse(pin: int32, state: int32, timeout: int32): int32;
 
     /**
      * Read a full NEC code from the IR signal

@@ -1,4 +1,4 @@
-all: deploy
+rf no	all: deploy
 
 # Initial setup 
 setup: 

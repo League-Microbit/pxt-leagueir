@@ -8,7 +8,6 @@
     },
     "files": [
         "README.md",
-        "src/main.ts",
         "src/ir.ts",
         "src/ir.cpp",
         "src/lib.ts",

@@ -13,13 +13,13 @@
 #include <cstdint>
 #include <cstdlib>
 #include <math.h>
-#include "codal_target_hal.h"
+#include <cstdio>
 
 
-// I'm getting errors for uint32_t and uint8_tin VSCode intelisense, 
+// I'm getting errors for uint32_t_t and uint8_tin VSCode intelisense, 
 // and this is the only way I could get rid of them. 
-typedef unsigned int uint32;
-typedef unsigned char uint8;
+//typedef uint32_t_t uint32_t;
+//typedef unsigned char uint8;
 
 
 using namespace pxt;
@@ -56,6 +56,11 @@ namespace leagueir
     const int16_t ONE_SPACE_MAX = ONE_SPACE + 150;        // ONE SPACE MAX = 1840µs
     const int16_t ONE_SPACE_MIN = ONE_SPACE - 470;        // ONE SPACE MIN = 1490µs
 
+    const int16_t REPEAT_SPACE =  2250; 
+    const int16_t REPEAT_SPACE_MAX = REPEAT_SPACE + 500; // REPEAT SPACE MAX = 2750µs
+    const int16_t REPEAT_SPACE_MIN = REPEAT_SPACE - 500; // RE
+
+
     const int16_t STOP_MARK = 560; // Final 560us mark
     const int16_t STOP_MARK_MAX = STOP_MARK + 300;   // STOP MARK MAX = 760µs
     const int16_t STOP_MARK_MIN = STOP_MARK - 140;   // STOP MARK MIN = 420µs
@@ -65,6 +70,24 @@ namespace leagueir
      * doing things that are not sleeping
      */
 
+    
+    /**
+     * Get the last IR error message
+     * @returns the error string, or empty string if no error
+     */
+    //%
+    String getIrError() {
+        return mkString(irError, strlen(irError));
+    }
+
+    /**
+     * Clear the IR error message
+     */
+    //%
+    void clearIrError() {
+        irError[0] = '\0';  // Set first character to null terminator
+    }
+
     int calibrate(int pin){
 
         MicroBitPin *p = getPin(pin);
@@ -72,8 +95,7 @@ namespace leagueir
         #define SLEEP_TIME_US 13 // Time to sleep in microseconds
         uint16_t count = CALIBRATE_COUNT;
 
-        target_disable_irq();
-        uint32 start = system_timer_current_time_us();
+        uint32_t start = system_timer_current_time_us();
         while(count > 0){
             p->setDigitalValue(1);
             sleep_us(SLEEP_TIME_US);
@@ -81,8 +103,7 @@ namespace leagueir
             sleep_us(SLEEP_TIME_US);
             count -= 1;
         }
-        uint32 end = system_timer_current_time_us();
-        target_enable_irq();
+        uint32_t end = system_timer_current_time_us();
 
         float elapsed = (end - start); 
         elapsed -= (CALIBRATE_COUNT * 2 * SLEEP_TIME_US); // Subtract the time spent waiting
@@ -92,8 +113,8 @@ namespace leagueir
         return calibrateTime; // Return the calibration time
     }
 
-    inline void busy_wait_us(uint32 us) {
-        uint32 start = system_timer_current_time_us();
+    inline void busy_wait_us(uint32_t us) {
+        uint32_t start = system_timer_current_time_us();
         while (system_timer_current_time_us() - start < us) {
             
         }
@@ -109,18 +130,18 @@ namespace leagueir
      * @param lowMicros microseconds to send no signal
      */
 
-    void sendIrBit(MicroBitPin *p, uint32 highTime, uint32 lowTime)
+    void sendIrBit(MicroBitPin *p, uint32_t highTime, uint32_t lowTime)
     {
 
-        uint32 start = system_timer_current_time_us();
+        uint32_t start = system_timer_current_time_us();
         p->setAnalogValue(511); // Send carrier signal (50% duty cycle = 511)
 
-        while (system_timer_current_time_us() - start < (uint32)highTime)
+        while (system_timer_current_time_us() - start < (uint32_t)highTime)
             ;
 
         start += highTime;
         p->setAnalogValue(0); // Turn off carrier
-        while (system_timer_current_time_us() - start < (uint32)lowTime)
+        while (system_timer_current_time_us() - start < (uint32_t)lowTime)
             ;
 
     }
@@ -131,7 +152,7 @@ namespace leagueir
      * @param p Pointer to the output MicroBitPin
      * @param b Byte to send
      */
-    inline void sendIrByte(MicroBitPin *p, uint8 b)
+    inline void sendIrByte(MicroBitPin *p, uint8_t b)
     {
 
         // Send each bit of the byte
@@ -184,7 +205,7 @@ namespace leagueir
         }
 
         // Send AGC header
-        target_disable_irq();
+ 
         sendIrBit(p, AGC_MARK, AGC_SPACE);
 
         sendIrWord(p, uAddress);
@@ -192,7 +213,7 @@ namespace leagueir
 
         // Send final stop bit
         sendIrBit(p, STOP_MARK, STOP_MARK);
-        target_enable_irq();
+
     }
 
     /**
@@ -203,7 +224,7 @@ namespace leagueir
     //%
     void sendIrCode(int32_t pin, int32_t code){
 
-        uint32 uCode = (uint32)code;
+        uint32_t uCode = (uint32_t)code;
 
         sendIrAddressCommand(pin, 
             (uCode >> 16) & 0xFFFF, // Extract address (upper 16 bits)
@@ -236,15 +257,25 @@ namespace leagueir
      * @param timeout Timeout in microseconds
      * @returns Time waited in microseconds, or 0 if timed out
      */
-    inline int waitForPinState(MicroBitPin *p, int state, uint32 timeout)
+    inline int waitForPinState(MicroBitPin *p, int state, uint32_t timeout)
     {
-        if (!p)
-            return 0;
 
         int startTime = system_timer_current_time_us();
         while (readPin(p) != state)
         {
             if (system_timer_current_time_us() - startTime > timeout)
+                return 0; // timeout
+        }
+        return system_timer_current_time_us() - startTime;
+    }
+
+    inline int waitForPinStateUntil(MicroBitPin *p, int state, uint32_t endTime)
+    {
+
+        int startTime = system_timer_current_time_us();
+        while (readPin(p) != state)
+        {
+            if (system_timer_current_time_us() > endTime)
                 return 0; // timeout
         }
         return system_timer_current_time_us() - startTime;
@@ -257,25 +288,21 @@ namespace leagueir
      * @param timeout Timeout in microseconds
      * @returns Pulse duration in microseconds, or negative value on error
      */
-    //%
-    int timePulse(int32_t pin, int32_t state, int32_t timeout)
+
+    int timePulse(MicroBitPin *p, int32_t state, int32_t timeout)
     {
-
-        MicroBitPin *p = getPin(pin);
-        int d;
-
-        if (!p)
-            return -1;
 
         // Wait for pin to go high
         if (!waitForPinState(p, state, timeout))
         {
-            return -2;
+            return -1;
         }
 
-        if (!(d = waitForPinState(p, !state, timeout)))
+        int d = waitForPinState(p, !state, timeout);
+
+        if (!d)
         {
-            return -3;
+            return -2;
         }
 
         return d;
@@ -284,21 +311,46 @@ namespace leagueir
     /**
      * Read the AGC header from the IR signal
      * @param pin the digital pin to read from
-     * @returns true if a valid AGC header was detected, false otherwise
+     * @returns 1 if a valid AGC header was detected, 0 otherwise
      */
-    bool readACGHeader(MicroBitPin *p) {
+    int readACGHeader(MicroBitPin *p) {
         int pulseTime = 0;
 
-        pulseTime = timePulse(p->name, 1, AGC_MARK_MAX);
-        if (pulseTime > 0 && pulseTime > AGC_MARK_MIN) {
-            pulseTime = timePulse(p->name, 0, AGC_SPACE_MAX);
-            if (pulseTime > 0 && pulseTime > AGC_SPACE_MIN) {
-                return true;
-            }
+
+        pulseTime = timePulse(p, 1, AGC_MARK_MAX);
+
+        if (pulseTime < 0) {
+            snprintf(irError, sizeof(irError), "AGC header timeout: pulseTime=%d", pulseTime);
+            return 0;
         }
-        return false;
+        if (pulseTime > AGC_MARK_MIN) {
+            pulseTime = timePulse(p, 0, AGC_SPACE_MAX);
+            if (pulseTime > AGC_SPACE_MIN) {
+                return 1;
+            } else if ( REPEAT_SPACE_MIN < pulseTime && pulseTime < REPEAT_SPACE_MAX) {
+                // This is a repeat code, we can handle it as a special case
+                return 2; // Return true for repeat code
+            } else {
+                snprintf(irError, sizeof(irError), "AGC space error: pulseTime=%d", pulseTime);
+            }
+        } else {
+            snprintf(irError, sizeof(irError), "AGC header error: pulseTime=%d", pulseTime);
+        }
+        return 0;
+
     }
 
+    inline void toggleDebugPin1() {
+        MicroBitPin *debugPin = getPin(MICROBIT_ID_IO_P1);
+        debugPin->setDigitalValue(1);
+        debugPin->setDigitalValue(0);
+    }
+
+    inline void toggleDebugPin2() {
+        MicroBitPin *debugPin = getPin(MICROBIT_ID_IO_P2);
+        debugPin->setDigitalValue(1);
+        debugPin->setDigitalValue(0);
+    }
 
 
     /**
@@ -310,16 +362,18 @@ namespace leagueir
     int readNecBit(MicroBitPin *p) {
         int pulseTime = 0;
 
-        pulseTime = timePulse(p->name, 1, BIT_MARK_MAX + 200);
+        pulseTime = timePulse(p, 1, BIT_MARK_MAX + 200);
 
         if (pulseTime < 0) {
+            snprintf(irError, sizeof(irError), "Bit mark timeout: pulseTime=%d", pulseTime);
             return -1;
         }
 
         if (pulseTime > BIT_MARK_MIN) {
-            pulseTime = timePulse(p->name, 0, ONE_SPACE_MAX);
+            pulseTime = timePulse(p, 0, ONE_SPACE_MAX);
 
             if (pulseTime < 0) {
+                snprintf(irError, sizeof(irError), "Bit space timeout: pulseTime=%d", pulseTime);
                 return -1;
             }
 
@@ -328,9 +382,11 @@ namespace leagueir
             } else if (pulseTime > ZERO_SPACE_MIN && pulseTime < ZERO_SPACE_MAX) {
                 return 0;
             } else {
+                snprintf(irError, sizeof(irError), "Bit space error: pulseTime=%d", pulseTime);
                 return -1;
             }
         } else {
+            snprintf(irError, sizeof(irError), "Bit mark error: pulseTime=%d", pulseTime);
             return -1;
         }
     }
@@ -341,7 +397,7 @@ namespace leagueir
      * @returns 1 if valid stop mark, 0 otherwise
      */
     int readStopMark(MicroBitPin *p) {
-        int pulseTime = timePulse(p->name, 1, STOP_MARK + 500); // Use STOP_MARK as reference
+        int pulseTime = timePulse(p, 1, STOP_MARK + 500); // Use STOP_MARK as reference
         if (pulseTime < (STOP_MARK - 200) || pulseTime > (STOP_MARK + 500)) {
             return 0;
         }
@@ -390,26 +446,53 @@ namespace leagueir
      * @returns the 32-bit NEC code, or 0 on error
      */
     //%
-    uint32 readNecCode(int32_t pin, int32_t timeout = 1000) {
+    uint32_t readNecCode(int32_t pin, int32_t timeout = 1000) {
         MicroBitPin *p = getPin(pin);
-        if (!p) return 0;
-        uint32 startTime = system_timer_current_time();
-        while (1) {
-            if ((system_timer_current_time() - startTime) > (uint32)timeout) {
-                return 0;
-            }
-            if (!readACGHeader(p)) {
-                continue;
-            }
-            int address = readNecWord(p);
-            int command = readNecWord(p);
-            if (address < 0 || command < 0) return 0;
-            uint32 n = ((uint32)address) | ((uint32)command << 16);
-            if (!readStopMark(p)) {
-                return 0;
-            }
-            return n;
+
+        if (!p)
+            return 0;
+
+        // I can't get this to compile, so do it in TypeScript
+        // p->setPull(PullUp); // Set pull-up for IR receiver
+
+        clearIrError(); // Clear any previous error
+
+        int startTime = system_timer_current_time_us();
+
+        waitForPinStateUntil(p, 0, startTime + timeout * 500); // wait for the low between codes
+        if(waitForPinStateUntil(p, 1, startTime + timeout * 500) == 0) { // Wait for the start of the signal
+            snprintf(irError, sizeof(irError), "Timeout waiting for start of signal ");
+            return 0;
         }
+
+        int header = readACGHeader(p);
+        if (header == 0) {
+            if (irError[0] == '\0') {
+                snprintf(irError, sizeof(irError), "Error reading address or command");
+            }
+            return 0;
+        } else if (header == 2) {
+
+            return 0xFFFFFFFF; // Indicate repeat code
+        }
+        int address = readNecWord(p);
+        int command = readNecWord(p);
+
+        if (address < 0 || command < 0){
+            if (irError[0] == '\0') {
+                snprintf(irError, sizeof(irError), "Error reading address or command");
+            }
+            return 0;
+        }
+
+        uint32_t n = ((uint32_t)address<<16) | ((uint32_t)command);
+
+        if (!readStopMark(p)) {
+            snprintf(irError, sizeof(irError), "Error reading stop mark");
+            return 0;
+        }
+        return n;
+     
     }
 
 }

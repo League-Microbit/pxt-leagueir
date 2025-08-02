@@ -33,8 +33,6 @@ namespace leagueir {
     const BIT_MARK = 560;                 // BIT MARK = 560µs
 
 
-
-
     const ONE_SPACE = ONE_BIT - BIT_MARK;         // ONE SPACE = 1690µs
 
 
@@ -69,7 +67,10 @@ namespace leagueir {
 
     //% 
     export function readNecAddressCommand(pin: DigitalPin, timeout?: number): [number, number] {
+        
+        pins.setPull(pin, PinPullMode.PullUp);
         let result = leagueir.readNecCode(pin, timeout);
+
 
         // Split the 32-bit result into address and command
         let address = (result >> 16) & 0xFFFF; // High 16 bits
