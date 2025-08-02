@@ -21,6 +21,9 @@ deploy:
 test:
 	pxt test
 
+serve:
+	 PXT_FORCE_LOCAL=1  pxt serve
+
 
 push: build 
 	git commit --allow-empty -a -m "Release version $(VERSION)"
