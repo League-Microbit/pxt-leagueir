@@ -23,7 +23,7 @@ namespace irtest {
         //leagueir.calibrate_cpp(DigitalPin.P0);
 
         while (true) {
-            leagueir.sendIrAddressCommand_cpp(DigitalPin.P8, 0x1234, 0xABCD);
+            leagueir.sendIrAddressCommand(DigitalPin.P8, 0x1234, 0xABCD);
             pause(1000);
         }
     }

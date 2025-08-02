@@ -10,8 +10,9 @@
         "README.md",
         "src/main.ts",
         "src/ir.ts",
-        "src/pulse.cpp",
+        "src/ir.cpp",
         "src/lib.ts",
+        "src/irpacket.ts",
         "shims.d.ts",
         "enums.d.ts"
     ],

@@ -80,4 +80,17 @@ namespace irlib {
         return k;
     }
 
+
+    /* Scramble the machine id and return the last 12 bits,
+    * to be used as a unique identifier, particularly useful for the IR packet
+    * ID value. */
+
+    export function getUniqueId(): number {
+        let machineId = control.deviceSerialNumber();
+        let scrambledId = irlib.murmur_32_scramble(machineId);
+        // Return the last 12 bits
+        return scrambledId & 0xFFF;
+    }  
+
+
 }

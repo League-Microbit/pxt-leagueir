@@ -38,6 +38,15 @@ declare namespace leagueir {
      */
     //% shim=leagueir::timePulse
     function timePulse(pin: int32, state: int32, timeout: int32): int32;
+
+    /**
+     * Read a full NEC code from the IR signal
+     * @param pin the digital pin to read from
+     * @param timeout timeout in milliseconds (default 1000)
+     * @returns the 32-bit NEC code, or 0 on error
+     */
+    //% timeout.defl=1000 shim=leagueir::readNecCode
+    function readNecCode(pin: int32, timeout?: int32): uint32;
 }
 
 // Auto-generated. Do not edit. Really.
