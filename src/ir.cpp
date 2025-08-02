@@ -11,17 +11,25 @@
 
 #include "pxt.h"
 #include <cstdint>
+#include <cstdlib>
 #include <math.h>
+#include "codal_target_hal.h"
+
+
+// I'm getting errors for uint32_t and uint8_tin VSCode intelisense, 
+// and this is the only way I could get rid of them. 
+typedef unsigned int uint32;
+typedef unsigned char uint8;
+
 
 using namespace pxt;
+using namespace std;
 
 namespace leagueir
-{
+{   
     char irError[64] = ""; // Global error string for IR errors
 
-
     int calibrateTime = 0; // Global variable to store the calibration time
-
 
     const int16_t MARK_PERIOD = 26; // 38kHz carrier frequency period in microseconds
 
@@ -64,8 +72,8 @@ namespace leagueir
         #define SLEEP_TIME_US 13 // Time to sleep in microseconds
         uint16_t count = CALIBRATE_COUNT;
 
-        __disable_irq();
-        uint32_t start = system_timer_current_time_us();
+        target_disable_irq();
+        uint32 start = system_timer_current_time_us();
         while(count > 0){
             p->setDigitalValue(1);
             sleep_us(SLEEP_TIME_US);
@@ -73,8 +81,8 @@ namespace leagueir
             sleep_us(SLEEP_TIME_US);
             count -= 1;
         }
-        uint32_t end = system_timer_current_time_us();
-        __enable_irq();
+        uint32 end = system_timer_current_time_us();
+        target_enable_irq();
 
         float elapsed = (end - start); 
         elapsed -= (CALIBRATE_COUNT * 2 * SLEEP_TIME_US); // Subtract the time spent waiting
@@ -84,8 +92,8 @@ namespace leagueir
         return calibrateTime; // Return the calibration time
     }
 
-    inline void busy_wait_us(uint32_t us) {
-        uint32_t start = system_timer_current_time_us();
+    inline void busy_wait_us(uint32 us) {
+        uint32 start = system_timer_current_time_us();
         while (system_timer_current_time_us() - start < us) {
             
         }
@@ -101,18 +109,18 @@ namespace leagueir
      * @param lowMicros microseconds to send no signal
      */
 
-    void sendIrBit(MicroBitPin *p, uint32_t highTime, uint32_t lowTime)
+    void sendIrBit(MicroBitPin *p, uint32 highTime, uint32 lowTime)
     {
 
-        uint32_t start = system_timer_current_time_us();
+        uint32 start = system_timer_current_time_us();
         p->setAnalogValue(511); // Send carrier signal (50% duty cycle = 511)
 
-        while (system_timer_current_time_us() - start < (uint32_t)highTime)
+        while (system_timer_current_time_us() - start < (uint32)highTime)
             ;
 
         start += highTime;
         p->setAnalogValue(0); // Turn off carrier
-        while (system_timer_current_time_us() - start < (uint32_t)lowTime)
+        while (system_timer_current_time_us() - start < (uint32)lowTime)
             ;
 
     }
@@ -123,7 +131,7 @@ namespace leagueir
      * @param p Pointer to the output MicroBitPin
      * @param b Byte to send
      */
-    inline void sendIrByte(MicroBitPin *p, uint8_t b)
+    inline void sendIrByte(MicroBitPin *p, uint8 b)
     {
 
         // Send each bit of the byte
@@ -176,7 +184,7 @@ namespace leagueir
         }
 
         // Send AGC header
-        __disable_irq();
+        target_disable_irq();
         sendIrBit(p, AGC_MARK, AGC_SPACE);
 
         sendIrWord(p, uAddress);
@@ -184,7 +192,7 @@ namespace leagueir
 
         // Send final stop bit
         sendIrBit(p, STOP_MARK, STOP_MARK);
-        __enable_irq();
+        target_enable_irq();
     }
 
     /**
@@ -195,7 +203,7 @@ namespace leagueir
     //%
     void sendIrCode(int32_t pin, int32_t code){
 
-        uint32_t uCode = (uint32_t)code;
+        uint32 uCode = (uint32)code;
 
         sendIrAddressCommand(pin, 
             (uCode >> 16) & 0xFFFF, // Extract address (upper 16 bits)
@@ -228,7 +236,7 @@ namespace leagueir
      * @param timeout Timeout in microseconds
      * @returns Time waited in microseconds, or 0 if timed out
      */
-    inline int waitForPinState(MicroBitPin *p, int state, uint32_t timeout)
+    inline int waitForPinState(MicroBitPin *p, int state, uint32 timeout)
     {
         if (!p)
             return 0;
@@ -382,12 +390,12 @@ namespace leagueir
      * @returns the 32-bit NEC code, or 0 on error
      */
     //%
-    uint32_t readNecCode(int32_t pin, int32_t timeout = 1000) {
+    uint32 readNecCode(int32_t pin, int32_t timeout = 1000) {
         MicroBitPin *p = getPin(pin);
         if (!p) return 0;
-        uint32_t startTime = system_timer_current_time();
+        uint32 startTime = system_timer_current_time();
         while (1) {
-            if ((system_timer_current_time() - startTime) > (uint32_t)timeout) {
+            if ((system_timer_current_time() - startTime) > (uint32)timeout) {
                 return 0;
             }
             if (!readACGHeader(p)) {
@@ -396,7 +404,7 @@ namespace leagueir
             int address = readNecWord(p);
             int command = readNecWord(p);
             if (address < 0 || command < 0) return 0;
-            uint32_t n = ((uint32_t)address) | ((uint32_t)command << 16);
+            uint32 n = ((uint32)address) | ((uint32)command << 16);
             if (!readStopMark(p)) {
                 return 0;
             }

@@ -10,7 +10,10 @@
             "defines": [],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
-            "cppStandard": "c++17"
+            "cppStandard": "c++17",
+            "recursiveIncludes": {
+                "order": "breadthFirst"
+            }
         }
     ],
     "version": 4

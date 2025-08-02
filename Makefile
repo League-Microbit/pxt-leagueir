@@ -8,11 +8,13 @@ setup:
 	pxt install
 
 build:
-	PXT_FORCE_LOCAL=1 pxt build
+	GITHUB_ACCESS_TOKEN=$(GITHUB_TOKEN) PXT_FORCE_LOCAL=1 pxt build
 
 
 deploy:
-	PXT_FORCE_LOCAL=1 pxt deploy
+	GITHUB_ACCESS_TOKEN=$(GITHUB_TOKEN) PXT_FORCE_LOCAL=1 pxt deploy
+
+
 
 test:
 	pxt test
