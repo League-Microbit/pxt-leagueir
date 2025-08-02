@@ -472,7 +472,6 @@ namespace leagueir
             }
             return 0;
         } else if (header == 2) {
-
             return 0xFFFFFFFF; // Indicate repeat code
         }
         int address = readNecWord(p);
