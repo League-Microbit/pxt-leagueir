@@ -4,6 +4,25 @@ namespace leagueir {
 
 
 
+    export enum Address {
+        RadioChannel = 0xD00D, // Radio channel and radio group 
+    }
+
+
+    // Status codes for IR packets
+    export enum IrStatus {
+        NONE = 0,
+        REQUEST = 1,
+        ACK = 2,
+        NACK = 3
+    }
+
+    // Command codes for IR packets
+    export enum IrCommand {
+        PAIR = 0,
+        IAM = 1
+    }
+
     /**
      * Listen for custom IR packets in the background
      * @param pin the digital pin to receive IR packets from
@@ -27,8 +46,8 @@ namespace leagueir {
 
                     // Call handler with extracted values (including received CRC for verification)
                     if (crc8 !== expectedCrc) {
-                        irError = "CRC mismatch: from " + irlib.toHex(result) + ", expected " + irlib.toHex(expectedCrc) + ", got " + irlib.toHex(crc8);
-                        serial.writeLine("E: " + irError);
+                        //getIrError() = "CRC mismatch: from " + irlib.toHex(result) + ", expected " + irlib.toHex(expectedCrc) + ", got " + irlib.toHex(crc8);
+                        serial.writeLine("E: " + getIrError());
                         continue; // Skip this packet if CRC does not match
                     }
                     handler(id, status, command, value);

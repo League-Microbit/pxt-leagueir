@@ -22,46 +22,8 @@
 
 namespace leagueir {
 
-    const AGC_MARK = 9000;                 // AGC MARK = 9000µs (9ms)
 
 
-    const AGC_SPACE = 4500;               // AGC SPACE = 4500µs (4.5ms)
-
-
-    const ONE_BIT = 2250;                 // ONE BIT total = 2250µs
-    const ZERO_BIT = 1120;                // ZERO BIT total = 1120µs
-    const BIT_MARK = 560;                 // BIT MARK = 560µs
-
-
-    const ONE_SPACE = ONE_BIT - BIT_MARK;         // ONE SPACE = 1690µs
-
-
-    // Constants for pin states
-    const IR_HIGH = 0; // IR LED is considered "high" when the digital pin reads 0
-    const IR_LOW = 1; // IR LED is considered "low" when the digital pin reads 1
-
-
-    export enum Address {
-        RadioChannel = 0xD00D, // Radio channel and radio group 
-    }
-
-
-    // Status codes for IR packets
-    export enum IrStatus {
-        NONE = 0,
-        REQUEST = 1,
-        ACK = 2,
-        NACK = 3
-    }
-
-    // Command codes for IR packets
-    export enum IrCommand {
-        PAIR = 0,
-        IAM = 1
-    }
-
-
-    export let irError = "";
 
  
 
