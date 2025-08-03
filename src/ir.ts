@@ -33,7 +33,7 @@ namespace leagueir {
     */
     //% block="leagueir_readNecAddressCommand" block="Read IR signal address and command from pin %pin"
     //% 
-    export function readNecAddressCommand(pin: DigitalPin, timeout?: number): [number, number] {
+    export function readNecAddressCommand(pin: DigitalPin, timeout: number): [number, number] {
         
 
         pins.setPull(pin, PinPullMode.PullUp);
@@ -61,7 +61,7 @@ namespace leagueir {
     export function onNecReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
             while (true) {
-                let [address, command] = readNecAddressCommand(pin);
+                let [address, command] = readNecAddressCommand(pin, 1000);
 
                 if (address != 0) {
                     handler(address, command);

@@ -17,10 +17,13 @@
         "shims.d.ts",
         "enums.d.ts"
     ],
-    "testFiles": [],
+    "testFiles": [
+        "test/test.ts",
+        "test/testNec.ts" 
+    ],
     "public": true,
     "targetVersions": {
-        "target": "8.0.103",
+        "target": "8.0.13",
         "targetId": "microbit"
     },
     "supportedTargets": [
