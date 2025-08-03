@@ -31,8 +31,13 @@ namespace leagueir {
     export function onIrPacketReceived(pin: DigitalPin, handler: (id: number, status: number, command: number, value: number) => void): void {
         control.inBackground(() => {
             while (true) {
-                let result = readNecCode(pin);
+                let result = readNecCode(pin, 1000);
 
+                if (result == undefined) { // Maybe shim not defined
+                    // If no valid signal was received, continue to next iteration
+                    continue;
+                }
+                
                 if (result != 0) {
                     // Extract fields from the 32-bit packet
                     let id = (result >> 20) & 0xFFF;      // Bits 31-20: id (12 bits)
