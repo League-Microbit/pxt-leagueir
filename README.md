@@ -1,27 +1,13 @@
 # LeagueIR NEC IR CCode Transmitter
 
+This extension provides routines for sending and recieving NEC format
+IR commands, formatted as two 16 bit numbers, an address and a command. 
 
-This is a demonstration PXT project that you can use as a template for
-building Micro:bit extensions. 
+To send IR codes, you can connect an IR LED directly to a Micro:bit pins;
+ because the LED is pulsed at 50% duty cycle, and the current from the Micro:bit
+ limited, there doesnt seem to be any damage from excessive current to the LED. 
 
-## Custom Docker Build Environment
+ To recieve IR commands, you must use a 3-pin IR reciever module, which will
+ include an indicator LED and pull up resistor, or, if you use a bare 1838IR
+ reciever, you must add a pull-up resistor. 
 
-This project includes a custom Docker container to replace the deprecated `pext/yotta` image used for building native MicroBit extensions. The container setup is located in the `docker/` directory.
-
-### Docker Container Features
-
-- **Ubuntu 20.04** base image for better yotta compatibility
-- **Yotta 0.20.5** build system properly installed
-- **Complete development environment** including Python 3, git, build tools
-- **Dedicated build user** with appropriate permissions
-
-### Building the Custom Container
-
-To build the custom yotta Docker container:
-
-```bash
-cd docker
-make build
-```
-
-The container is configured in `pxtarget.json` to be used automatically by PXT when building native code extensions.
