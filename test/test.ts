@@ -9,7 +9,7 @@ serial.writeLine("Starting tests");
 
 //irtest.testSendNecCode();
 
-irtest.testNextNecCode();
+//irtest.testNextNecCode();
 
 //irtest.testPulseTiming();
 //irtest.testTimedBit();
