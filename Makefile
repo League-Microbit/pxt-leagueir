@@ -22,7 +22,7 @@ test:
 	pxt test
 
 serve:
-	 PXT_FORCE_LOCAL=1  pxt serve
+	pxt serve
 
 
 push: build 
