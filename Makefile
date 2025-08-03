@@ -26,7 +26,7 @@ serve:
 
 
 push: build 
-	git commit --allow-empty -a -m "Release version $(VERSION)"
+	git commit --allow-empty -a -m "Release version v$(VERSION)"
 	git push
 	git tag v$(VERSION) 
 	git push --tags
