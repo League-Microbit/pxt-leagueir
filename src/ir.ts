@@ -61,10 +61,10 @@ namespace leagueir {
     export function onNecReceived(pin: DigitalPin, handler: (address: number, command: number) => void): void {
         control.inBackground(() => {
             while (true) {
-                let [address, command] = readNecAddressCommand(pin, 1000);
+                let response = readNecAddressCommand(pin, 1000);
 
-                if (address != 0) {
-                    handler(address, command);
+                if (response[0] != 0) {
+                    handler(response[0], response[1]);
                 }
 
                 // Small delay before next reading
