@@ -29,10 +29,9 @@ namespace leagueir {
      * @param address 16-bit address
      * @param command 16-bit command
      */
-    //% block="Send IR address %address command %command on pin %pin"
+    //% block="Send IR address $address command $command on pin $pin"
     //% address.min=0 address.max=65535
     //% command.min=0 command.max=65535
-    //% pin.fieldEditor="gridpicker" pin.fieldOptions.columns=3
     //% shim=leagueir::sendIrAddressCommandCpp
     export function sendIrAddressCommand(pin: DigitalPin, address: number, command: number): void {
         // Simulator implementation - just log the action
