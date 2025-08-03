@@ -9,7 +9,7 @@ serial.writeLine("Starting tests");
 
 //irtest.testSendNecCode();
 
-//irtest.testNextNecCode();
+irtest.testNextNecCode();
 
 //irtest.testPulseTiming();
 //irtest.testTimedBit();
@@ -19,11 +19,3 @@ serial.writeLine("Starting tests");
 //irtest.testPulseIn();
 
 
-
-leagueir.onNecReceived(DigitalPin.P16, function (address, command) {
-    serial.writeValue("x", address)
-    serial.writeValue("y", command)
-})
-basic.forever(function () {
-	
-})
