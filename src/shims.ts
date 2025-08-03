@@ -31,7 +31,7 @@ namespace leagueir {
      */
     //% block="Send IR address %address command %command on pin %pin"
     //% shim=leagueir::sendIrAddressCommandCpp
-    export function sendIrAddressCommand(pin: number, address: number, command: number): void {
+    export function sendIrAddressCommand(pin: DigitalPin, address: number, command: number): void {
         // Simulator implementation - just log the action
         console.log(`Sending IR: address=${address}, command=${command} on pin ${pin}`);
     }
@@ -42,7 +42,7 @@ namespace leagueir {
      * @param code 32-bit code to send (upper 16 bits = address, lower 16 bits = command)
      */
     //% shim=leagueir::sendIrCodeCpp
-    export function sendIrCode(pin: number, code: number): void {
+    export function sendIrCode(pin: DigitalPin, code: number): void {
         let address = (code >> 16) & 0xFFFF;
         let command = code & 0xFFFF;
         sendIrAddressCommand(pin, address, command);
@@ -55,7 +55,7 @@ namespace leagueir {
      * @returns the 32-bit NEC code, or 0 on error
      */
     //% shim=leagueir::readNecCodeCpp
-    export function readNecCode(pin: number, timeout: number): number {
+    export function readNecCode(pin: DigitalPin, timeout: number): number {
         // Simulator implementation - return a fake IR code for testing
         console.log(`Reading IR from pin ${pin} with timeout ${timeout}ms`);
         return 0x12345678; // Return a test value in simulator
