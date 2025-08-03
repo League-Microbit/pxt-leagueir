@@ -7,6 +7,7 @@
         "core": "*"
     },
     "files": [
+        "main.blocks",
         "README.md",
         "src/main.ts",
         "src/ir.ts",
@@ -16,12 +17,10 @@
         "shims.d.ts",
         "enums.d.ts"
     ],
-    "testFiles": [
-
-    ],
+    "testFiles": [],
     "public": true,
     "targetVersions": {
-        "target": "8.0.10",
+        "target": "8.0.103",
         "targetId": "microbit"
     },
     "supportedTargets": [
