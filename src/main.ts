@@ -1,4 +1,4 @@
-leagueir.onNecReceived(DigitalPin.P0, function (address, command) {
+leagueir.onNecReceived(DigitalPin.P16, function (address, command) {
     serial.writeValue("x", address)
     serial.writeValue("y", command)
 })

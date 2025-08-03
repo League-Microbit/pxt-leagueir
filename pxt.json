@@ -8,13 +8,14 @@
     },
     "files": [
         "main.blocks",
-        "main.ts",
+        "src/main.ts",
         "README.md",
         "src/main.ts",
         "src/ir.ts",
         "src/ir.cpp",
         "src/lib.ts",
         "src/irpacket.ts",
+        "src/shims.ts",
         "shims.d.ts",
         "enums.d.ts"
     ],

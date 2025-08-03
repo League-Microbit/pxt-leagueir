@@ -1,3 +1,4 @@
+
 {
     "configurations": [
         {
@@ -12,7 +13,7 @@
             "cStandard": "c17",
             "cppStandard": "c++17",
             "recursiveIncludes": {
-                "order": "breadthFirst"
+                "order": "${default}"
             }
         }
     ],

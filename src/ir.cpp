@@ -1,5 +1,3 @@
-
-
 /**
  * LeagueIR NEC IR CCode Transmitter
  *
@@ -10,17 +8,9 @@
  */
 
 #include "pxt.h"
-#include <cstdint>
 #include <cstdlib>
 #include <math.h>
 #include <cstdio>
-
-
-// I'm getting errors for uint32_t_t and uint8_tin VSCode intelisense, 
-// and this is the only way I could get rid of them. 
-//typedef uint32_t_t uint32_t;
-//typedef unsigned char uint8;
-
 
 using namespace pxt;
 using namespace std;
@@ -76,7 +66,7 @@ namespace leagueir
      * @returns the error string, or empty string if no error
      */
     //%
-    String getIrError() {
+    String getIrErrorCpp() {
         return mkString(irError, strlen(irError));
     }
 
@@ -84,7 +74,7 @@ namespace leagueir
      * Clear the IR error message
      */
     //%
-    void clearIrError() {
+    void clearIrErrorCpp() {
         irError[0] = '\0';  // Set first character to null terminator
     }
 
@@ -187,7 +177,7 @@ namespace leagueir
      * @param command 16-bit command
      */
     //%
-    void sendIrAddressCommand(int32_t pin, int32_t address, int32_t command)
+    void sendIrAddressCommandCpp(int32_t pin, int32_t address, int32_t command)
     {
 
         // NEC protocol timing (all in microseconds)
@@ -221,12 +211,12 @@ namespace leagueir
      * @param pin The pin number to send on
      * @param code 32-bit code to send (upper 16 bits = address, lower 16 bits = command)
      */
-    //%
-    void sendIrCode(int32_t pin, int32_t code){
+    
+    void sendIrCodeCpp(int32_t pin, int32_t code){
 
         uint32_t uCode = (uint32_t)code;
 
-        sendIrAddressCommand(pin, 
+        sendIrAddressCommandCpp(pin, 
             (uCode >> 16) & 0xFFFF, // Extract address (upper 16 bits)
             uCode & 0xFFFF);       // Extract command (lower 16 bits)
     }
@@ -446,7 +436,7 @@ namespace leagueir
      * @returns the 32-bit NEC code, or 0 on error
      */
     //%
-    uint32_t readNecCode(int32_t pin, int32_t timeout) {
+    uint32_t readNecCodeCpp(int32_t pin, int32_t timeout) {
         MicroBitPin *p = getPin(pin);
 
         if (!p)
@@ -455,7 +445,7 @@ namespace leagueir
         // I can't get this to compile, so do it in TypeScript
         // p->setPull(PullUp); // Set pull-up for IR receiver
 
-        clearIrError(); // Clear any previous error
+        clearIrErrorCpp(); // Clear any previous error
 
         int startTime = system_timer_current_time_us();
 

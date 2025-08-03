@@ -16,14 +16,14 @@ declare namespace leagueir {
      * Get the last IR error message
      * @returns the error string, or empty string if no error
      */
-    //% shim=leagueir::getIrError
-    function getIrError(): string;
+    //% shim=leagueir::getIrErrorCpp
+    function getIrErrorCpp(): string;
 
     /**
      * Clear the IR error message
      */
-    //% shim=leagueir::clearIrError
-    function clearIrError(): void;
+    //% shim=leagueir::clearIrErrorCpp
+    function clearIrErrorCpp(): void;
 
     /**
      * Send an NEC format IR command.
@@ -31,16 +31,8 @@ declare namespace leagueir {
      * @param address 16-bit address
      * @param command 16-bit command
      */
-    //% shim=leagueir::sendIrAddressCommand
-    function sendIrAddressCommand(pin: int32, address: int32, command: int32): void;
-
-    /**
-     * Send an IR code using the specified pin.
-     * @param pin The pin number to send on
-     * @param code 32-bit code to send (upper 16 bits = address, lower 16 bits = command)
-     */
-    //% shim=leagueir::sendIrCode
-    function sendIrCode(pin: int32, code: int32): void;
+    //% shim=leagueir::sendIrAddressCommandCpp
+    function sendIrAddressCommandCpp(pin: int32, address: int32, command: int32): void;
 
     /**
      * Read a full NEC code from the IR signal
@@ -48,8 +40,8 @@ declare namespace leagueir {
      * @param timeout timeout in milliseconds (default 1000)
      * @returns the 32-bit NEC code, or 0 on error
      */
-    //% shim=leagueir::readNecCode
-    function readNecCode(pin: int32, timeout: int32): uint32;
+    //% shim=leagueir::readNecCodeCpp
+    function readNecCodeCpp(pin: int32, timeout: int32): uint32;
 }
 
 // Auto-generated. Do not edit. Really.
