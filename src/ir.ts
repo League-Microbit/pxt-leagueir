@@ -36,11 +36,14 @@ namespace leagueir {
     //% 
     export function readNecAddressCommand(pin: DigitalPin, timeout?: number): [number, number] {
         
-        if (!leagueir.readNecCode) return [0,0]; // shim is undefined in sim
 
         pins.setPull(pin, PinPullMode.PullUp);
         let result = leagueir.readNecCode(pin, timeout);
 
+        if (result == undefined) { // Maybe shim not defined
+            // If no valid signal was received, return 0 for both address and command
+            return [0, 0];
+        }
 
         // Split the 32-bit result into address and command
         let address = (result >> 16) & 0xFFFF; // High 16 bits
