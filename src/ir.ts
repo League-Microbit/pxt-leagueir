@@ -31,7 +31,7 @@ namespace leagueir {
      * @param timeout Optional timeout in milliseconds to wait for a signal.
      * @returns A 32-bit number representing the NEC code.
     */
-    //% block="leagueir_readNecAddressCommand" block="Read IR signal address and command from pin %pin"
+    //%  block="Read IR signal address and command from pin %pin"
     //% 
     export function readNecAddressCommand(pin: DigitalPin, timeout: number): [number, number] {
         
@@ -72,7 +72,5 @@ namespace leagueir {
         });
     }
 
-
-
-
+   
 }
