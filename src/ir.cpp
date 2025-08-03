@@ -446,7 +446,7 @@ namespace leagueir
      * @returns the 32-bit NEC code, or 0 on error
      */
     //%
-    uint32_t readNecCode(int32_t pin, int32_t timeout = 1000) {
+    uint32_t readNecCode(int32_t pin, int32_t timeout) {
         MicroBitPin *p = getPin(pin);
 
         if (!p)
