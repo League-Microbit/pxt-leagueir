@@ -24,7 +24,6 @@
 namespace leagueir {
 
 
-
     /**
      * Reads a NEC IR code from the specified pin.
      * 
