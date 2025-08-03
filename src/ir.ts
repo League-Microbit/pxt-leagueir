@@ -63,7 +63,7 @@ namespace leagueir {
             while (true) {
                 let response = readNecAddressCommand(pin, 1000);
 
-                if (response[0] != 0) {
+                if (response != undefined) {
                     handler(response[0], response[1]);
                 }
 
