@@ -36,7 +36,7 @@ namespace leagueir {
     //% 
     export function readNecAddressCommand(pin: DigitalPin, timeout?: number): [number, number] {
         
-        if (!leagueir.readNecCode) return; // shim is undefined in sim
+        if (!leagueir.readNecCode) return [0,0]; // shim is undefined in sim
 
         pins.setPull(pin, PinPullMode.PullUp);
         let result = leagueir.readNecCode(pin, timeout);
