@@ -8,6 +8,7 @@
     },
     "files": [
         "main.blocks",
+        "main.ts",
         "README.md",
         "src/main.ts",
         "src/ir.ts",
