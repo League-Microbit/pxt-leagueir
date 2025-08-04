@@ -1,6 +1,4 @@
-
-
-serial.writeLine("Starting tests");
+//serial.writeLine("Starting tests");
 
 //irtest.testIPReceive();
 //irtest.testIPSend();
