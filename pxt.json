@@ -1,6 +1,6 @@
 {
     "name": "leagueir",
-    "version": "0.20250802.10",
+    "version": "1.20250804.1",
     "description": "LeagueIR Transmitter and Receiver",
     "license": "MIT",
     "dependencies": {

@@ -194,15 +194,14 @@ namespace leagueir
             return;
         }
 
-        
-        target_disable_irq()
+        __disable_irq();
         sendIrBit(p, AGC_MARK, AGC_SPACE); // Send AGC header
 
         sendIrWord(p, uAddress);
         sendIrWord(p, uCommand);
 
         sendIrBit(p, STOP_MARK, STOP_MARK); // Send final stop bit
-        target_enable_irq();
+        __enable_irq();
     }
 
     /**
