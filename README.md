@@ -11,3 +11,10 @@ To send IR codes, you can connect an IR LED directly to a Micro:bit pins;
  include an indicator LED and pull up resistor, or, if you use a bare 1838IR
  reciever, you must add a pull-up resistor. 
 
+## Timing Issues
+
+There are some serious timing issues related to the radio; once it is turned on,
+there is a lot of timing jitter in the IR codes, even if the radio is explicitly
+turned off. 
+
+[Here is an article](https://makecode.com/blog/timing-adventures-in-infrared) that discuses some of these issues. 
