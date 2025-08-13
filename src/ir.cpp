@@ -130,7 +130,7 @@ namespace leagueir
             ;
 
         start += highTime;
-        p->setAnalogValue(0); // Turn off carrier
+        p->setAnalogValue(1); // Turn off carrier
         while (system_timer_current_time_us() - start < (uint32_t)lowTime)
             ;
 

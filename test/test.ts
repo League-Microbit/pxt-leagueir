@@ -15,5 +15,3 @@ irtest.testSendNecCode();
 //irtest.testCalibrate();
 
 //irtest.testPulseIn();
-
-
