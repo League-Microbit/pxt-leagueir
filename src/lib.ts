@@ -3,7 +3,6 @@
 
 namespace irlib {
 
-
     export function toHex(num: number): string {
         // Convert to 32-bit unsigned integer
         num = num >>> 0;
