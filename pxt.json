@@ -1,15 +1,13 @@
 {
     "name": "leagueir",
-    "version": "1.20250813.2",
+    "version": "1.20250813.3",
     "description": "LeagueIR Transmitter and Receiver",
     "license": "MIT",
     "dependencies": {
         "core": "*"
     },
     "files": [
-        "src/main.ts",
         "README.md",
-        "src/main.ts",
         "src/ir.ts",
         "src/ir.cpp",
         "src/lib.ts",
