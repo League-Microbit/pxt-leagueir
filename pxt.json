@@ -1,6 +1,6 @@
 {
     "name": "leagueir",
-    "version": "1.20250812.1",
+    "version": "1.20250813.1",
     "description": "LeagueIR Transmitter and Receiver",
     "license": "MIT",
     "dependencies": {
@@ -13,15 +13,11 @@
         "src/ir.ts",
         "src/ir.cpp",
         "src/lib.ts",
-        "src/irpacket.ts",
         "src/shims.ts",
         "shims.d.ts",
         "enums.d.ts"
     ],
     "testFiles": [
-        "test/test.ts",
-        "test/testNec.ts"
-
     ],
     "public": true,
     "targetVersions": {
