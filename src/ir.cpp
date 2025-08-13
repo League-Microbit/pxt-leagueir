@@ -187,12 +187,13 @@ namespace leagueir
 
         MicroBitPin *p = getPin(pin);
         
-        // Set up 38kHz carrier (period = 26us)
-        p->setAnalogPeriodUs(26);
-
         if (!p) {
             return;
         }
+
+        // Set up 38kHz carrier (period = 26us)
+        p->setAnalogPeriodUs(26);
+
 
         __disable_irq();
         sendIrBit(p, AGC_MARK, AGC_SPACE); // Send AGC header
