@@ -13,7 +13,6 @@ namespace irtest {
             serial.writeLine("Address: " + irlib.toHex(address) + ", Command: " + irlib.toHex(command)+ " " + leagueir.getIrError());
             pause(250);
         }
-
     }
 
     export function testSendNecCode() {
@@ -23,8 +22,8 @@ namespace irtest {
         while (true) {
             leagueir.sendIrAddressCommand(DigitalPin.P8, 0xD00D, 0xABCD);
             pause(500);
-            leagueir.sendIrAddressCommand(DigitalPin.P8, 0xFFFF, 0x1234);
-            pause(500);
+            //leagueir.sendIrAddressCommand(DigitalPin.P8, 0xFFFF, 0x1234);
+            //pause(500);
         }
 
     }

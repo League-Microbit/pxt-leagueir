@@ -5,7 +5,7 @@
 //irtest.testRadioChannelSend();
 //irtest.testRadioChannelReceive();
 
-//irtest.testSendNecCode();
+irtest.testSendNecCode();
 
 //irtest.testNextNecCode();
 
