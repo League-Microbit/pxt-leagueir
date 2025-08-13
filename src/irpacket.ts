@@ -55,9 +55,6 @@ namespace leagueir {
 
 
 
-    export enum Address {
-        RadioChannel = 0xD00D, // Radio channel and radio group 
-    }
 
 
     // Status codes for IR packets

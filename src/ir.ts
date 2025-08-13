@@ -23,6 +23,10 @@
 //% icon="\uf1eb"  block="LeagueIR"
 namespace leagueir {
 
+    export enum Address {
+        RadioChannel = 0xD00D, // Radio channel and radio group 
+    }
+
 
     /**
      * Reads a NEC IR code from the specified pin.
