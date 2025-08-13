@@ -78,37 +78,6 @@ namespace leagueir
         irError[0] = '\0';  // Set first character to null terminator
     }
 
-    int calibrate(int pin){
-
-        MicroBitPin *p = getPin(pin);
-        #define CALIBRATE_COUNT 500
-        #define SLEEP_TIME_US 13 // Time to sleep in microseconds
-        uint16_t count = CALIBRATE_COUNT;
-
-        uint32_t start = system_timer_current_time_us();
-        while(count > 0){
-            p->setDigitalValue(1);
-            sleep_us(SLEEP_TIME_US);
-            p->setDigitalValue(0);
-            sleep_us(SLEEP_TIME_US);
-            count -= 1;
-        }
-        uint32_t end = system_timer_current_time_us();
-
-        float elapsed = (end - start); 
-        elapsed -= (CALIBRATE_COUNT * 2 * SLEEP_TIME_US); // Subtract the time spent waiting
-
-        calibrateTime = (int)(elapsed / CALIBRATE_COUNT); // Store the calibration time
-
-        return calibrateTime; // Return the calibration time
-    }
-
-    inline void busy_wait_us(uint32_t us) {
-        uint32_t start = system_timer_current_time_us();
-        while (system_timer_current_time_us() - start < us) {
-            
-        }
-    }
 
     /*
      * Send an IR bit using PWM carrier frequency (38kHz). This is the
@@ -142,7 +111,7 @@ namespace leagueir
      * @param p Pointer to the output MicroBitPin
      * @param b Byte to send
      */
-    inline void sendIrByte(MicroBitPin *p, uint8_t b)
+    void sendIrByte(MicroBitPin *p, uint8_t b)
     {
 
         // Send each bit of the byte
@@ -164,7 +133,7 @@ namespace leagueir
      * @param p Pointer to the output MicroBitPin
      * @param word 16-bit word to send
      */
-    inline void sendIrWord(MicroBitPin *p, uint16_t word)
+    void sendIrWord(MicroBitPin *p, uint16_t word)
     {
         sendIrByte(p, word & 0xFF);        // Low byte
         sendIrByte(p, (word >> 8) & 0xFF); // High byte
@@ -246,7 +215,7 @@ namespace leagueir
      * @param timeout Timeout in microseconds
      * @returns Time waited in microseconds, or 0 if timed out
      */
-    inline int waitForPinState(MicroBitPin *p, int state, uint32_t timeout)
+    int waitForPinState(MicroBitPin *p, int state, uint32_t timeout)
     {
 
         int startTime = system_timer_current_time_us();
@@ -258,7 +227,7 @@ namespace leagueir
         return system_timer_current_time_us() - startTime;
     }
 
-    inline int waitForPinStateUntil(MicroBitPin *p, int state, uint32_t endTime)
+    int waitForPinStateUntil(MicroBitPin *p, int state, uint32_t endTime)
     {
 
         int startTime = system_timer_current_time_us();
@@ -329,13 +298,13 @@ namespace leagueir
 
     }
 
-    inline void toggleDebugPin1() {
+    void toggleDebugPin1() {
         MicroBitPin *debugPin = getPin(MICROBIT_ID_IO_P1);
         debugPin->setDigitalValue(1);
         debugPin->setDigitalValue(0);
     }
 
-    inline void toggleDebugPin2() {
+    void toggleDebugPin2() {
         MicroBitPin *debugPin = getPin(MICROBIT_ID_IO_P2);
         debugPin->setDigitalValue(1);
         debugPin->setDigitalValue(0);
