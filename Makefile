@@ -5,6 +5,7 @@ VERSION := $(shell grep '"version"' pxt.json | head -1 | sed -E 's/.*"version": 
 all: deploy
 
 # Initial setup 
+# you will need to install npm first
 setup: 
 	npm install
 	npm install -g pxt
