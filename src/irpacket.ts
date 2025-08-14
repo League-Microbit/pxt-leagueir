@@ -136,21 +136,7 @@ namespace leagueir {
     }
 
 
-    export function sendIRPacket(pin: DigitalPin, id: number, status: number, command: number, value: number): void {
 
-        if (id == 0) {
-            id = irlib.getUniqueId(); // Use unique ID if id is 0
-        }
-
-        let packet = packPacket(id, status, command, value, 0);
-        // Calculate CRC8 for the 24-bit data
-        let crc8 = CRC8.fromNumber(packet & 0xFFFFFF00); 
-        
-        packet = packet | (crc8 & 0xFF); // Include CRC in the final packet
-        
-        // Send the packet
-        serial.writeLine("Sending IR Packet: " + irlib.toHex(packet));
-        leagueir.sendIrCode(pin, packet);
-    }
+    
 
 }
