@@ -7,3 +7,4 @@ pxt_modules
 *.tgz
 cd
 .venv
+.pxt/**
