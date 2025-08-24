@@ -15,7 +15,10 @@
         "shims.d.ts",
         "enums.d.ts"
     ],
-    "testFiles": [],
+    "testFiles": [
+        "test/test.ts",
+        "test/testNec.ts"
+    ],
     "public": true,
     "targetVersions": {
         "target": "8.0.13",
